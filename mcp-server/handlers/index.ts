@@ -1,0 +1,69 @@
+/**
+ * 导出所有工具处理器
+ */
+
+export { BaseToolHandler } from './base.js';
+
+// 搜索相关
+export * from './search.js';
+
+// 文档相关
+export * from './document.js';
+
+// 笔记本相关
+export * from './notebook.js';
+
+// 快照相关
+export * from './snapshot.js';
+
+import {
+  SearchByFilenameHandler,
+  SearchByContentHandler,
+  SqlQueryHandler,
+} from './search.js';
+import {
+  GetDocumentContentHandler,
+  CreateDocumentHandler,
+  AppendToDocumentHandler,
+  UpdateDocumentHandler,
+  AppendToDailyNoteHandler,
+  MoveDocumentHandler,
+  GetDocumentTreeHandler,
+} from './document.js';
+import {
+  ListNotebooksHandler,
+  GetRecentlyUpdatedDocumentsHandler,
+} from './notebook.js';
+import {
+  CreateSnapshotHandler,
+  ListSnapshotsHandler,
+  RollbackSnapshotHandler,
+} from './snapshot.js';
+
+// 工厂函数：创建所有处理器实例
+export function createAllHandlers() {
+  return [
+    // 搜索
+    new SearchByFilenameHandler(),
+    new SearchByContentHandler(),
+    new SqlQueryHandler(),
+
+    // 文档
+    new GetDocumentContentHandler(),
+    new CreateDocumentHandler(),
+    new AppendToDocumentHandler(),
+    new UpdateDocumentHandler(),
+    new AppendToDailyNoteHandler(),
+    new MoveDocumentHandler(),
+    new GetDocumentTreeHandler(),
+
+    // 笔记本
+    new ListNotebooksHandler(),
+    new GetRecentlyUpdatedDocumentsHandler(),
+
+    // 快照
+    new CreateSnapshotHandler(),
+    new ListSnapshotsHandler(),
+    new RollbackSnapshotHandler(),
+  ];
+}

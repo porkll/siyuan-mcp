@@ -1,0 +1,44 @@
+# Source files (only publish compiled files)
+src/
+mcp-server/
+tsconfig.json
+
+# SiYuan source code (not needed for users)
+siyuan/
+
+# Development files
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+
+# Test files
+test/
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Documentation (except README)
+docs/
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Editor files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/

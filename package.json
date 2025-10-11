@@ -1,0 +1,61 @@
+{
+  "name": "siyuan-mcp-server",
+  "version": "0.1.0",
+  "description": "SiYuan Note MCP Server - Model Context Protocol server for SiYuan Note",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "siyuan-mcp": "dist/mcp-server/bin/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "mcp:stdio": "node dist/mcp-server/bin/stdio.js",
+    "mcp:http": "node dist/mcp-server/bin/http.js"
+  },
+  "keywords": [
+    "siyuan",
+    "siyuan-note",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "llm",
+    "ai",
+    "note-taking",
+    "knowledge-management",
+    "typescript"
+  ],
+  "author": "lei",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/siyuan-tools"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README_zh.md",
+    "LICENSE"
+  ]
+}
