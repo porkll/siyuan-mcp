@@ -6,7 +6,7 @@
  *   node http.js --token <API_TOKEN> [--baseUrl <BASE_URL>] [--port <PORT>]
  *
  * Example:
- *   node http.js --token 9vtvpbfnlsh7dcz8 --port 3000
+ *   node http.js --token YOUR_API_TOKEN --port 3000
  */
 
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
@@ -69,9 +69,9 @@ Options:
   --help, -h            Show this help message
 
 Example:
-  node http.js --token 9vtvpbfnlsh7dcz8
-  node http.js --token 9vtvpbfnlsh7dcz8 --port 3000
-  node http.js --token 9vtvpbfnlsh7dcz8 --baseUrl http://192.168.1.100:6806 --port 8080
+  node http.js --token YOUR_API_TOKEN
+  node http.js --token YOUR_API_TOKEN --port 3000
+  node http.js --token YOUR_API_TOKEN --baseUrl http://192.168.1.100:6806 --port 8080
 
 Endpoints:
   GET  /mcp    - Establish SSE connection

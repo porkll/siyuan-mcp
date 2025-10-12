@@ -4,7 +4,7 @@
 
 import { createSiyuanTools } from '../dist/index.js';
 
-const API_TOKEN = '9vtvpbfnlsh7dcz8';
+const API_TOKEN = 'your-api-token-here'; // Get from SiYuan: Settings -> About -> API Token
 const BASE_URL = 'http://127.0.0.1:6806';
 
 async function main() {

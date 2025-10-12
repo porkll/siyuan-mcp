@@ -1,6 +1,8 @@
-# 思源笔记工具库
+# 思源笔记 MCP 服务器
 
-基于 TypeScript 的思源笔记 API 操作库，专为 MCP (Model Context Protocol) 服务器设计，如 Gemini CLI 和 Claude Code。
+[English](./README.md) | 中文
+
+为思源笔记提供的模型上下文协议（MCP）服务器，让 Claude、Cursor 等 AI 助手能够无缝地与你的思源笔记交互。
 
 ## ⚠️ 重要声明
 
@@ -15,154 +17,221 @@
 
 ---
 
-## 目录
+## ✨ 特性
 
-- [特性](#特性)
-- [安装](#安装)
-- [快速开始](#快速开始)
-- [核心功能](#核心功能)
-  - [搜索](#1-搜索)
-  - [文件操作](#2-文件操作)
-  - [今日笔记](#3-今日笔记)
-  - [笔记本操作](#4-笔记本操作)
-- [高级用法](#高级用法)
-- [开发](#开发)
+- 🚀 完整的 MCP（模型上下文协议）实现
+- 📝 提供 20+ 个工具，全面支持思源笔记操作
+- 🔍 高级搜索（文件名、内容、SQL）
+- 📁 文档管理（创建、读取、更新）
+- 📅 今日笔记支持，自动创建
+- 📚 笔记本操作
+- 📸 快照管理（备份和恢复）
+- 🔒 文档移动和树形操作
+- 💻 TypeScript 编写，提供完整类型定义
+- 🌐 支持 Claude Desktop、Cursor 等所有 MCP 兼容客户端
 
-## 特性
+## 📦 安装
 
-- ✅ 完整的 TypeScript 类型定义
-- ✅ 模块化设计，易于扩展
-- ✅ 符合 Gemini CLI 和 Claude Code 的技术栈标准
-- ✅ 支持所有常用的思源笔记 API 操作
-- ✅ 支持今日笔记自动创建和追加
-- ✅ 灵活的搜索功能
-
-## 安装
+### 方式一：从源码安装（推荐）
 
 ```bash
-npm install siyuan-tools
-```
+# 克隆仓库
+git clone https://github.com/yourusername/siyuan-mcp.git
+cd siyuan-mcp
 
-## 快速开始
-
-```typescript
-import { createSiyuanTools } from 'siyuan-tools';
-
-// 创建工具实例（需要思源笔记的 API Token）
-const siyuan = createSiyuanTools('http://127.0.0.1:6806', 'your-api-token');
-
-// 搜索笔记
-const files = await siyuan.searchByFileName('我的笔记');
-
-// 创建新文档
-const docId = await siyuan.createFile(
-  'notebookId',
-  '/文件夹/新文档',
-  '# 标题\n\n内容'
-);
-```
-
-## 核心功能
-
-### 1. 搜索
-
-```typescript
-// 根据文件名搜索
-const files = await siyuan.searchByFileName('关键词', 10);
-
-// 根据内容搜索
-const blocks = await siyuan.searchByContent('内容关键词', 20);
-
-// 高级搜索（指定笔记本、类型等）
-const results = await siyuan.search.searchByContent('关键词', {
-  limit: 20,
-  notebook: 'notebookId',
-  types: ['d', 'p'] // d=文档, p=段落
-});
-```
-
-### 2. 文件操作
-
-```typescript
-// 查看文件内容
-const content = await siyuan.getFileContent(blockId);
-
-// 覆盖文件内容
-await siyuan.overwriteFile(blockId, '新内容');
-
-// 追加内容到文件
-await siyuan.appendToFile(parentId, '追加的内容');
-
-// 创建新文件
-const docId = await siyuan.createFile(
-  'notebookId',
-  '/路径/文件名',
-  '# 标题\n\n内容'
-);
-```
-
-### 3. 今日笔记
-
-```typescript
-// 追加内容到今日笔记（自动创建）
-await siyuan.appendToDailyNote('notebookId', '今天的想法');
-
-// 在今日笔记开头插入内容
-await siyuan.dailyNote.prependToDailyNote('notebookId', '待办事项');
-
-// 获取或创建今日笔记
-const dailyNoteId = await siyuan.dailyNote.getOrCreateDailyNote('notebookId');
-```
-
-### 4. 笔记本操作
-
-```typescript
-// 列出所有笔记本
-const notebooks = await siyuan.listNotebooks();
-
-// 创建笔记本
-const notebookId = await siyuan.notebook.createNotebook('新笔记本');
-
-// 获取笔记本配置
-const config = await siyuan.notebook.getNotebookConf('notebookId');
-```
-
-## 高级用法
-
-### 直接使用 API 模块
-
-```typescript
-// 块操作
-await siyuan.block.insertBlockBefore(blockId, '内容');
-await siyuan.block.moveBlock(blockId, previousId, parentId);
-await siyuan.block.deleteBlock(blockId);
-
-// 文档操作
-const tree = await siyuan.document.getDocTree('notebookId');
-await siyuan.document.moveDocument(
-  'sourceNotebook', '/source/path',
-  'targetNotebook', '/target/path'
-);
-```
-
-### 使用 SQL 查询
-
-```typescript
-const results = await siyuan.search.query(`
-  SELECT * FROM blocks
-  WHERE type='d' AND content LIKE '%关键词%'
-  ORDER BY updated DESC
-  LIMIT 10
-`);
-```
-
-## 开发
-
-```bash
 # 安装依赖
 npm install
 
 # 构建项目
+npm run build
+
+# 全局安装
+npm install -g .
+```
+
+### 方式二：从 npm 安装（发布后可用）
+
+```bash
+npm install -g siyuan-mcp-server
+```
+
+安装完成后，`siyuan-mcp` 命令将全局可用。
+
+## 🔧 配置
+
+### 前置条件
+
+1. **获取思源笔记 API Token：**
+   - 打开思源笔记
+   - 进入 设置 → 关于 → API Token
+   - 复制 Token
+
+2. **确保思源笔记正在运行：**
+   - 默认地址：`http://127.0.0.1:6806`
+   - 如果使用不同端口，请相应调整 `baseUrl`
+
+### 在 Cursor 中配置
+
+编辑 MCP 配置文件 `~/.cursor/mcp.json`：
+
+```json
+{
+  "mcpServers": {
+    "siyuan-mcp": {
+      "command": "siyuan-mcp",
+      "args": [
+        "stdio",
+        "--token",
+        "你的_API_TOKEN",
+        "--baseUrl",
+        "http://127.0.0.1:6806"
+      ]
+    }
+  }
+}
+```
+
+### 在 Claude Desktop 中配置
+
+编辑配置文件：
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "siyuan-mcp": {
+      "command": "siyuan-mcp",
+      "args": [
+        "stdio",
+        "--token",
+        "你的_API_TOKEN",
+        "--baseUrl",
+        "http://127.0.0.1:6806"
+      ]
+    }
+  }
+}
+```
+
+### 验证安装
+
+配置完成后，重启你的 MCP 客户端（Cursor/Claude Desktop），然后尝试：
+- "列出我的所有思源笔记本"
+- "搜索包含'项目计划'的文档"
+- "在工作笔记本中创建一个会议记录"
+- "显示最近修改的5个文档"
+
+## 🛠️ 可用的 MCP 工具
+
+配置完成后，你可以通过自然语言与思源笔记交互。服务器提供 20+ 个工具：
+
+### 📝 搜索与查询
+- **search_by_filename** - 按文件名搜索文档
+- **search_by_content** - 按内容搜索块/文档
+- **sql_query** - 在思源数据库上执行自定义 SQL 查询（高级）
+
+### 📄 文档操作
+- **get_document_content** - 获取文档的 Markdown 内容
+- **create_document** - 创建新文档
+- **append_to_document** - 追加内容到现有文档
+- **update_document** - 更新（覆盖）文档内容
+- **move_document** - 移动文档到新位置
+- **get_document_tree** - 获取指定深度的文档树结构
+
+### 📅 今日笔记
+- **append_to_daily_note** - 追加到今日笔记（如需要会自动创建）
+
+### 📚 笔记本管理
+- **list_notebooks** - 列出所有笔记本
+- **get_recently_updated_documents** - 获取最近更新的文档
+
+### 📸 快照管理
+- **create_snapshot** - 创建数据快照用于备份
+- **list_snapshots** - 列出可用的快照
+- **rollback_snapshot** - 回滚到指定快照
+
+### 使用示例
+
+用自然语言向你的 AI 助手提问：
+
+```
+"列出我的所有思源笔记本"
+"搜索关于机器学习的文档"
+"在工作笔记本中创建一个名为'项目想法'的新文档"
+"显示最近修改的10个文档"
+"追加'会议记录：讨论了第四季度目标'到今天的日记"
+"在进行重大更改前创建一个快照"
+"'项目'笔记本的树形结构是什么？"
+```
+
+## 🔧 高级：作为 TypeScript 库使用
+
+虽然主要设计为 MCP 服务器，你也可以在自己的项目中将此包作为 TypeScript 库使用：
+
+```typescript
+import { createSiyuanTools } from 'siyuan-mcp-server';
+
+// 创建实例
+const siyuan = createSiyuanTools('http://127.0.0.1:6806', 'your-token');
+
+// 搜索操作
+const files = await siyuan.searchByFileName('关键词', 10);
+const blocks = await siyuan.searchByContent('内容', 20);
+
+// 文档操作
+const content = await siyuan.getFileContent(documentId);
+await siyuan.createFile('notebookId', '/路径/文档', '# 标题\n\n内容');
+await siyuan.appendToFile(documentId, '新内容');
+await siyuan.overwriteFile(documentId, '替换的内容');
+
+// 今日笔记
+await siyuan.appendToDailyNote('notebookId', '今天我学到了...');
+
+// 笔记本操作
+const notebooks = await siyuan.listNotebooks();
+
+// SQL 查询
+const results = await siyuan.search.query(`
+  SELECT * FROM blocks 
+  WHERE type='d' AND content LIKE '%关键词%'
+  ORDER BY updated DESC
+  LIMIT 10
+`);
+
+// 直接 API 访问
+await siyuan.block.insertBlockAfter(blockId, '新块内容');
+await siyuan.document.moveDocument(['doc1', 'doc2'], 'targetNotebookId');
+const tree = await siyuan.document.getDocTree('notebookId', 2);
+```
+
+### 类型定义
+
+包含完整的 TypeScript 类型：
+
+```typescript
+import type {
+  SiyuanConfig,
+  SiyuanApiResponse,
+  Block,
+  Notebook,
+  NotebookConf,
+  DocTreeNode,
+  SearchOptions
+} from 'siyuan-mcp-server';
+```
+
+## 💻 开发
+
+### 设置
+
+```bash
+# 克隆并安装
+git clone https://github.com/yourusername/siyuan-mcp.git
+cd siyuan-mcp
+npm install
+
+# 构建
 npm run build
 
 # 监听模式（自动重新构建）
@@ -171,16 +240,92 @@ npm run watch
 # 代码检查
 npm run lint
 
-# 格式化代码
+# 格式化
 npm run format
 ```
 
-## 获取 API Token
+### 手动测试
 
+```bash
+# 手动启动 stdio 服务器
+npm run mcp:stdio -- --token YOUR_TOKEN --baseUrl http://127.0.0.1:6806
+
+# 启动 HTTP 服务器（用于 Web 客户端）
+npm run mcp:http -- --token YOUR_TOKEN --port 3000 --baseUrl http://127.0.0.1:6806
+```
+
+## 🏗️ 架构
+
+```
+siyuan-mcp/
+├── src/                    # 核心 TypeScript 库
+│   ├── api/               # 思源 API 客户端
+│   ├── types/             # 类型定义
+│   └── utils/             # 辅助工具
+├── mcp-server/            # MCP 服务器实现
+│   ├── bin/               # CLI 入口点
+│   ├── core/              # MCP 服务器核心
+│   ├── handlers/          # 工具处理器
+│   └── transports/        # Stdio/HTTP 传输
+└── dist/                  # 编译后的 JavaScript
+```
+
+## 🔧 技术栈
+
+- **语言**: TypeScript 5.3+
+- **运行时**: Node.js 18+
+- **模块系统**: ES Modules
+- **MCP SDK**: @modelcontextprotocol/sdk
+- **协议**: MCP（模型上下文协议）
+
+## ❓ 常见问题
+
+### 如何获取思源 API Token？
 1. 打开思源笔记
-2. 进入 设置 -> 关于
-3. 复制 API Token
+2. 进入 设置 → 关于 → API Token
+3. 复制 Token
 
-## 许可证
+### 如何找到笔记本 ID？
+询问你的 MCP 客户端："列出我的所有思源笔记本"，它会显示 ID。
+
+或者通过编程方式：
+```typescript
+const notebooks = await siyuan.listNotebooks();
+console.log(notebooks.map(nb => `${nb.name}: ${nb.id}`));
+```
+
+### 服务器无法工作，应该检查什么？
+1. 思源笔记是否正在运行？（默认：http://127.0.0.1:6806）
+2. API Token 是否正确？
+3. 配置后是否重启了 MCP 客户端？
+4. 检查 MCP 客户端中的日志
+
+### 可以使用不同的思源端口吗？
+可以！只需更新 `baseUrl` 参数：
+```json
+"--baseUrl", "http://127.0.0.1:YOUR_PORT"
+```
+
+### 是否支持远程思源实例？
+支持！将 `baseUrl` 指向你的远程实例：
+```json
+"--baseUrl", "http://your-server.com:6806"
+```
+
+## 🤝 贡献
+
+欢迎贡献！请随时提交问题和拉取请求。
+
+## 📄 许可证
 
 Apache-2.0
+
+## 🔗 相关项目
+
+- [思源笔记](https://github.com/siyuan-note/siyuan) - 思源笔记官方仓库
+- [Model Context Protocol](https://modelcontextprotocol.io/) - MCP 文档
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) - 官方 MCP SDK
+
+## 🙏 致谢
+
+本项目主要由 AI 辅助开发，基于优秀的[思源笔记](https://github.com/siyuan-note/siyuan)项目构建。

@@ -8,7 +8,7 @@
  *   node stdio.js --token <API_TOKEN> [--baseUrl <BASE_URL>]
  *
  * Example:
- *   node stdio.js --token 9vtvpbfnlsh7dcz8 --baseUrl http://127.0.0.1:6806
+ *   node stdio.js --token YOUR_API_TOKEN --baseUrl http://127.0.0.1:6806
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -62,8 +62,8 @@ Options:
   --help, -h            Show this help message
 
 Example:
-  node stdio.js --token 9vtvpbfnlsh7dcz8
-  node stdio.js --token 9vtvpbfnlsh7dcz8 --baseUrl http://192.168.1.100:6806
+  node stdio.js --token YOUR_API_TOKEN
+  node stdio.js --token YOUR_API_TOKEN --baseUrl http://192.168.1.100:6806
   `);
 }
 

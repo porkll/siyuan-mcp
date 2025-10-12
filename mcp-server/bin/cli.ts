@@ -42,13 +42,13 @@ Options:
 
 Examples:
   # Stdio mode (for Claude Desktop)
-  siyuan-mcp stdio --token 9vtvpbfnlsh7dcz8
+  siyuan-mcp stdio --token YOUR_API_TOKEN
 
   # HTTP mode
-  siyuan-mcp http --token 9vtvpbfnlsh7dcz8 --port 3000
+  siyuan-mcp http --token YOUR_API_TOKEN --port 3000
 
   # Custom SiYuan server
-  siyuan-mcp stdio --token 9vtvpbfnlsh7dcz8 --baseUrl http://192.168.1.100:6806
+  siyuan-mcp stdio --token YOUR_API_TOKEN --baseUrl http://192.168.1.100:6806
 
 Configuration for Claude Desktop:
   Add to your Claude Desktop MCP settings:
