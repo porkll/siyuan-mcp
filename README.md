@@ -4,6 +4,32 @@
 
 A TypeScript library for SiYuan Note API operations, designed to be compatible with MCP (Model Context Protocol) servers like Gemini CLI and Claude Code.
 
+## ⚠️ Important Notice | 重要声明
+
+**English:**
+
+The code in this project is primarily developed with AI assistance. While functional testing has been performed, comprehensive code review has not been completed. Before using this project, please be aware of and accept the following:
+
+- The code may contain undiscovered issues or potential risks
+- Conduct necessary code reviews and testing before use
+- Users assume all risks and responsibilities arising from the use of this project
+- Thorough validation is recommended before production use
+
+**Use with caution and at your own risk.**
+
+---
+
+**中文：**
+
+本项目代码主要由 AI 辅助开发，仅进行了功能性测试，未对所有代码进行完整审查。使用本项目前，请充分了解并接受以下内容：
+
+- 代码可能存在未发现的问题或潜在风险
+- 请在使用前进行必要的代码审查和测试
+- 使用者需自行承担使用本项目所产生的风险和责任
+- 建议在生产环境使用前进行充分的验证
+
+**请谨慎使用，并对自己的选择负责。**
+
 ## 特性 Features
 
 - 完整的 TypeScript 类型定义
@@ -298,6 +324,9 @@ npm run build
 # 添加到 Claude Code（替换为你的 API Token）
 claude mcp add-json siyuan '{"command":"node","args":["/Users/lei/workspace/program/personal/siyuan-mcp/dist/mcp-server/bin/stdio.js","--token","你的API_TOKEN","--baseUrl","http://127.0.0.1:6806"]}'
 
+
+claude mcp add-json siyuan '{"command":"node","args":["/Users/lei/workspace/program/personal/siyuan-mcp/dist/mcp-server/bin/stdio.js","--token","9vtvpbfnlsh7dcz8","--baseUrl","http://127.0.0.1:6806"]}'
+
 # 验证配置
 claude mcp list
 ```
@@ -324,7 +353,7 @@ claude mcp list
 8. **append_to_daily_note** - 追加到今日笔记
 9. **list_notebooks** - 列出所有笔记本
 10. **get_notebook_config** - 获取笔记本配置
-11. **get_recently_updated_documents** - 获取最近更新的文档
+11. **get_recent_documents** - 获取最近修改的文档
 12. **get_document_outline** - 获取文档大纲
 
 ### 两种服务器模式
