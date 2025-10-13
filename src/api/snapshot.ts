@@ -55,7 +55,12 @@ export class SiyuanSnapshotApi {
       throw new Error(`Failed to get snapshots: ${response.msg}`);
     }
 
-    return response.data;
+    // 确保返回的数据结构完整
+    return {
+      snapshots: response.data?.snapshots || [],
+      pageCount: response.data?.pageCount || 0,
+      totalCount: response.data?.totalCount || 0,
+    };
   }
 
   /**

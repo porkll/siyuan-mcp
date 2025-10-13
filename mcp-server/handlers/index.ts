@@ -16,9 +16,13 @@ export * from './notebook.js';
 // 快照相关
 export * from './snapshot.js';
 
+// 标签相关
+export * from './tag.js';
+
 import {
   SearchByFilenameHandler,
   SearchByContentHandler,
+  UnifiedSearchHandler,
   SqlQueryHandler,
 } from './search.js';
 import {
@@ -39,11 +43,17 @@ import {
   ListSnapshotsHandler,
   RollbackSnapshotHandler,
 } from './snapshot.js';
+import {
+  ListAllTagsHandler,
+  SearchByTagHandler,
+  ReplaceTagHandler,
+} from './tag.js';
 
 // 工厂函数：创建所有处理器实例
 export function createAllHandlers() {
   return [
     // 搜索
+    new UnifiedSearchHandler(), // 统一搜索（推荐使用）
     new SearchByFilenameHandler(),
     new SearchByContentHandler(),
     new SqlQueryHandler(),
@@ -65,5 +75,10 @@ export function createAllHandlers() {
     new CreateSnapshotHandler(),
     new ListSnapshotsHandler(),
     new RollbackSnapshotHandler(),
+
+    // 标签
+    new ListAllTagsHandler(),
+    new SearchByTagHandler(),
+    new ReplaceTagHandler(),
   ];
 }

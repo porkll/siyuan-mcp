@@ -11,6 +11,7 @@ import { SiyuanBlockApi } from './api/block.js';
 import { SiyuanDocumentApi } from './api/document.js';
 import { SiyuanNotebookApi } from './api/notebook.js';
 import { SiyuanSnapshotApi } from './api/snapshot.js';
+import { SiyuanTagApi } from './api/tag.js';
 import { DailyNoteUtils } from './utils/daily-note.js';
 import { SiyuanHelpers } from './utils/helpers.js';
 
@@ -38,6 +39,9 @@ export class SiyuanTools {
   /** 快照操作相关 API */
   public readonly snapshot: SiyuanSnapshotApi;
 
+  /** 标签操作相关 API */
+  public readonly tag: SiyuanTagApi;
+
   /** 今日笔记工具 */
   public readonly dailyNote: DailyNoteUtils;
 
@@ -53,6 +57,7 @@ export class SiyuanTools {
     this.document = new SiyuanDocumentApi(this.client);
     this.notebook = new SiyuanNotebookApi(this.client);
     this.snapshot = new SiyuanSnapshotApi(this.client);
+    this.tag = new SiyuanTagApi(this.client);
     this.dailyNote = new DailyNoteUtils(
       this.client,
       this.document,
@@ -175,5 +180,6 @@ export { SiyuanBlockApi } from './api/block.js';
 export { SiyuanDocumentApi } from './api/document.js';
 export { SiyuanNotebookApi } from './api/notebook.js';
 export { SiyuanSnapshotApi } from './api/snapshot.js';
+export { SiyuanTagApi } from './api/tag.js';
 export { DailyNoteUtils } from './utils/daily-note.js';
 export { SiyuanHelpers } from './utils/helpers.js';
