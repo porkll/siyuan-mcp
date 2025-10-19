@@ -94,7 +94,7 @@ export class UnifiedSearchHandler extends BaseToolHandler<
   },
   SearchResultResponse[]
 > {
-  readonly name = 'siyuan_search';
+  readonly name = 'unified_search';
   readonly description =
     'Unified search tool: search documents/blocks by content, tag, filename, or combination of these filters';
   readonly inputSchema: JSONSchema = {

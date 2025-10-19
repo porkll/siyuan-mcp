@@ -20,10 +20,7 @@ export * from './snapshot.js';
 export * from './tag.js';
 
 import {
-  SearchByFilenameHandler,
-  SearchByContentHandler,
   UnifiedSearchHandler,
-  SqlQueryHandler,
 } from './search.js';
 import {
   GetDocumentContentHandler,
@@ -45,7 +42,6 @@ import {
 } from './snapshot.js';
 import {
   ListAllTagsHandler,
-  SearchByTagHandler,
   ReplaceTagHandler,
 } from './tag.js';
 
@@ -53,10 +49,7 @@ import {
 export function createAllHandlers() {
   return [
     // 搜索
-    new UnifiedSearchHandler(), // 统一搜索（推荐使用）
-    new SearchByFilenameHandler(),
-    new SearchByContentHandler(),
-    new SqlQueryHandler(),
+    new UnifiedSearchHandler(), // 统一搜索
 
     // 文档
     new GetDocumentContentHandler(),
@@ -78,7 +71,6 @@ export function createAllHandlers() {
 
     // 标签
     new ListAllTagsHandler(),
-    new SearchByTagHandler(),
     new ReplaceTagHandler(),
   ];
 }

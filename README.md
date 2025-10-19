@@ -33,13 +33,13 @@ The code in this project is primarily developed with AI assistance. While functi
 ## ✨ Features
 
 - 🚀 Full MCP (Model Context Protocol) implementation
-- 📝 20+ tools for comprehensive SiYuan Note operations
-- 🔍 Advanced search (by filename, content, and SQL)
-- 📁 Document management (create, read, update)
+- 📝 15 essential tools for comprehensive SiYuan Note operations
+- 🔍 Unified search (content, filename, tag, and combinations)
+- 📁 Document management (create, read, update, move, tree)
 - 📅 Daily note support with auto-creation
 - 📚 Notebook operations
 - 📸 Snapshot management (backup & restore)
-- 🔒 Document moving and tree operations
+- 🏷️ Tag management (list, replace)
 - 💻 Written in TypeScript with full type definitions
 - 🌐 Works with Claude Desktop, Cursor, and any MCP-compatible client
 
@@ -137,12 +137,10 @@ After configuration, restart your MCP client (Cursor/Claude Desktop) and try:
 
 ## 🛠️ Available MCP Tools
 
-Once configured, you can interact with SiYuan through natural language. The server provides 20+ tools:
+Once configured, you can interact with SiYuan through natural language. The server provides 15 essential tools:
 
-### 📝 Search & Query
-- **search_by_filename** - Search documents by filename
-- **search_by_content** - Search blocks/documents by content
-- **sql_query** - Execute custom SQL queries on SiYuan database (advanced)
+### 🔍 Search
+- **unified_search** - Unified search tool: search by content, filename, tag, or any combination
 
 ### 📄 Document Operations
 - **get_document_content** - Get the markdown content of a document
@@ -162,7 +160,11 @@ Once configured, you can interact with SiYuan through natural language. The serv
 ### 📸 Snapshot Management
 - **create_snapshot** - Create a data snapshot for backup
 - **list_snapshots** - List available snapshots
-- **rollback_snapshot** - Rollback to a specific snapshot
+- **rollback_to_snapshot** - Rollback to a specific snapshot
+
+### 🏷️ Tag Management
+- **list_all_tags** - List all unique tags in workspace
+- **batch_replace_tag** - Batch replace or remove tags across all documents
 
 ### Usage Examples
 

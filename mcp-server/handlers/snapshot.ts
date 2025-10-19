@@ -59,7 +59,7 @@ export class ListSnapshotsHandler extends BaseToolHandler<
  * 回滚到指定快照
  */
 export class RollbackSnapshotHandler extends BaseToolHandler<{ snapshot_id: string }, void> {
-  readonly name = 'rollback_snapshot';
+  readonly name = 'rollback_to_snapshot';
   readonly description = 'Rollback to a specific snapshot (恢复到指定快照状态)';
   readonly inputSchema: JSONSchema = {
     type: 'object',

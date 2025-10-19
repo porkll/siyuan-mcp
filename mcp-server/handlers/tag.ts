@@ -9,7 +9,7 @@ import type { ExecutionContext, JSONSchema } from '../core/types.js';
  * 列出所有标签
  */
 export class ListAllTagsHandler extends BaseToolHandler<Record<string, never>, string[]> {
-  readonly name = 'siyuan_list_all_tags';
+  readonly name = 'list_all_tags';
   readonly description = 'List all unique document tags used in SiYuan workspace';
   readonly inputSchema: JSONSchema = {
     type: 'object',
@@ -59,9 +59,9 @@ export class ReplaceTagHandler extends BaseToolHandler<
   { old_tag: string; new_tag: string },
   { count: number; updatedIds: string[] }
 > {
-  readonly name = 'siyuan_replace_tag';
+  readonly name = 'batch_replace_tag';
   readonly description =
-    'Replace all occurrences of a tag with another tag across all documents. Use empty string for new_tag to remove the tag.';
+    'Batch replace all occurrences of a tag with another tag across all documents. Use empty string for new_tag to remove the tag.';
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
