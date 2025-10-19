@@ -90,9 +90,9 @@ export class SiyuanDocumentApi {
   }
 
   /**
-   * 根据ID移动文档（可以移动到另一个文档下或另一个笔记本下）
+   * 根据ID移动文档到另一个文档下
    * @param fromIds 要移动的文档ID列表（可以是单个或多个）
-   * @param toId 目标位置ID（文档ID或笔记本ID）
+   * @param toId 目标文档ID
    */
   async moveDocumentsByIds(fromIds: string | string[], toId: string): Promise<void> {
     const fromIdArray = Array.isArray(fromIds) ? fromIds : [fromIds];
@@ -104,6 +104,41 @@ export class SiyuanDocumentApi {
 
     if (response.code !== 0) {
       throw new Error(`Failed to move documents: ${response.msg}`);
+    }
+  }
+
+  /**
+   * 根据ID移动文档到笔记本根目录
+   * @param fromIds 要移动的文档ID列表（可以是单个或多个）
+   * @param toNotebookId 目标笔记本ID
+   */
+  async moveDocumentsToNotebookRoot(fromIds: string | string[], toNotebookId: string): Promise<void> {
+    const fromIdArray = Array.isArray(fromIds) ? fromIds : [fromIds];
+
+    // 首先获取所有文档的路径
+    const fromPaths: string[] = [];
+    for (const docId of fromIdArray) {
+      const stmt = `SELECT hpath FROM blocks WHERE id = '${docId}' AND type = 'd'`;
+      const response = await this.client.request<any[]>('/api/query/sql', { stmt });
+      const blocks = response.data || [];
+      if (blocks.length > 0) {
+        fromPaths.push(blocks[0].hpath);
+      }
+    }
+
+    if (fromPaths.length === 0) {
+      throw new Error('No valid documents found to move');
+    }
+
+    // 使用 moveDocs API 移动到笔记本根目录
+    const response = await this.client.request('/api/filetree/moveDocs', {
+      fromPaths: fromPaths,
+      toNotebook: toNotebookId,
+      toPath: '/',  // "/" 表示笔记本根目录
+    });
+
+    if (response.code !== 0) {
+      throw new Error(`Failed to move documents to notebook root: ${response.msg}`);
     }
   }
 

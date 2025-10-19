@@ -28,7 +28,7 @@ import {
   AppendToDocumentHandler,
   UpdateDocumentHandler,
   AppendToDailyNoteHandler,
-  MoveDocumentHandler,
+  MoveDocumentsHandler,
   GetDocumentTreeHandler,
 } from './document.js';
 import {
@@ -57,7 +57,7 @@ export function createAllHandlers() {
     new AppendToDocumentHandler(),
     new UpdateDocumentHandler(),
     new AppendToDailyNoteHandler(),
-    new MoveDocumentHandler(),
+    new MoveDocumentsHandler(),
     new GetDocumentTreeHandler(),
 
     // 笔记本

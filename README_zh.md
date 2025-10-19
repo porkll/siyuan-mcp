@@ -134,7 +134,7 @@ npm install -g siyuan-mcp-server
 - **create_document** - 创建新文档
 - **append_to_document** - 追加内容到现有文档
 - **update_document** - 更新（覆盖）文档内容
-- **move_document** - 移动文档到新位置
+- **move_documents** - 移动一个或多个文档到新位置
 - **get_document_tree** - 获取指定深度的文档树结构
 
 ### 📅 今日笔记
@@ -165,6 +165,61 @@ npm install -g siyuan-mcp-server
 "追加'会议记录：讨论了第四季度目标'到今天的日记"
 "在进行重大更改前创建一个快照"
 "'项目'笔记本的树形结构是什么？"
+"将文档 X 移动到工作笔记本的根目录"
+"将文档 X 和 Y 移动到文档 Z 下面"
+```
+
+## 📖 工具参数参考
+
+### move_documents
+
+移动一个或多个文档到新位置。
+
+**参数：**
+- `from_ids` (string[]) - **必需**。要移动的文档 ID 数组
+  - 对于单个文档，使用包含一个元素的数组：`["20210101000000-abc1234"]`
+  - 对于多个文档：`["20210101000000-abc1234", "20210102000000-def5678"]`
+- `to_parent_id` (string) - **选项 1**：目标父文档 ID。文档将作为子文档移动到此文档下。不能与 `to_notebook_root` 同时使用。
+- `to_notebook_root` (string) - **选项 2**：目标笔记本 ID。文档将移动到此笔记本的根目录（顶级）。不能与 `to_parent_id` 同时使用。
+
+**重要：** 必须提供恰好一个目标：`to_parent_id` 或 `to_notebook_root`。
+
+**示例：**
+```typescript
+// 移动单个文档到笔记本根目录
+{
+  from_ids: ["20210101000000-abc1234"],
+  to_notebook_root: "20210101000000-notebook1"
+}
+
+// 移动多个文档到另一个文档下
+{
+  from_ids: ["20210101000000-abc1234", "20210102000000-def5678"],
+  to_parent_id: "20210103000000-parent99"
+}
+```
+
+### batch_replace_tag
+
+批量替换所有文档中标签的出现。
+
+**参数：**
+- `old_tag` (string) - **必需**。要替换的标签名（不带 # 符号）
+- `new_tag` (string) - **必需**。新标签名（不带 # 符号，使用空字符串表示删除）
+
+**示例：**
+```typescript
+// 替换标签
+{
+  old_tag: "项目",
+  new_tag: "工作项目"
+}
+
+// 删除标签
+{
+  old_tag: "已弃用",
+  new_tag: ""
+}
 ```
 
 ## 🔧 高级：作为 TypeScript 库使用

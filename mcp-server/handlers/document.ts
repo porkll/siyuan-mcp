@@ -152,26 +152,27 @@ export class AppendToDailyNoteHandler extends BaseToolHandler<
 /**
  * 移动文档（通过ID）
  */
-export class MoveDocumentHandler extends BaseToolHandler<
+export class MoveDocumentsHandler extends BaseToolHandler<
   { from_ids: string | string[]; to_parent_id?: string; to_notebook_root?: string },
   { success: boolean; moved_count: number; from_ids: string[]; to_parent_id?: string; to_notebook_root?: string }
 > {
-  readonly name = 'move_document';
-  readonly description = 'Move document(s) to a target location. Choose ONE: move under a parent document (nested) OR move to notebook root (top-level).';
+  readonly name = 'move_documents';
+  readonly description = 'Move one or more documents to a new location. Provide EXACTLY ONE destination: either to_parent_id (to nest under a document) OR to_notebook_root (to move to notebook top level).';
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
       from_ids: {
-        type: 'string',
-        description: 'Document ID(s) to move (can be a single string or an array of strings)',
-      } as any,
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Array of document IDs to move. For a single document, use an array with one element: ["doc-id"]',
+      },
       to_parent_id: {
         type: 'string',
-        description: 'Target parent document ID - documents will become children of this document (nested placement)',
+        description: 'OPTION 1: Parent document ID. Documents will be moved under this document as children. Cannot be used together with to_notebook_root.',
       },
       to_notebook_root: {
         type: 'string',
-        description: 'Target notebook ID - documents will be moved to the root level of this notebook (top-level placement)',
+        description: 'OPTION 2: Notebook ID. Documents will be moved to the root (top level) of this notebook. Cannot be used together with to_parent_id.',
       },
     },
     required: ['from_ids'],
@@ -210,18 +211,14 @@ export class MoveDocumentHandler extends BaseToolHandler<
       throw new Error('Cannot provide both to_parent_id and to_notebook_root - choose only one target location');
     }
 
-    let targetId: string;
-
     // 情况1: 移动到父文档下（嵌套）
     if (hasParentId) {
-      targetId = args.to_parent_id;
+      await context.siyuan.document.moveDocumentsByIds(fromIds, args.to_parent_id);
     }
     // 情况2: 移动到笔记本根目录（顶级）
     else {
-      targetId = '/' + args.to_notebook_root;
+      await context.siyuan.document.moveDocumentsToNotebookRoot(fromIds, args.to_notebook_root);
     }
-
-    await context.siyuan.document.moveDocumentsByIds(fromIds, targetId);
 
     return {
       success: true,

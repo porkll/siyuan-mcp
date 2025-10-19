@@ -55,7 +55,7 @@ npm run test:watch
 - `append_to_document` - 追加内容
 - `update_document` - 更新文档
 - `append_to_daily_note` - 追加到今日笔记
-- `move_document` - 移动文档
+- `move_documents` - 移动文档
 - `get_document_tree` - 获取文档树
 
 ### 📚 笔记本 (2个)

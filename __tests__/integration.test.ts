@@ -15,7 +15,7 @@ import {
   AppendToDocumentHandler,
   UpdateDocumentHandler,
   AppendToDailyNoteHandler,
-  MoveDocumentHandler,
+  MoveDocumentsHandler,
   GetDocumentTreeHandler,
 } from '../dist/mcp-server/handlers/document.js';
 import {
@@ -235,10 +235,101 @@ describe('SiYuan MCP Server Integration Tests', () => {
       console.log(`✓ Retrieved document tree with ${result.length} items`);
     });
 
-    test('MoveDocumentHandler - should move document (skipped to preserve structure)', async () => {
-      console.log('⊘ Skipping move test to preserve document structure');
-      // This test is skipped to avoid messing up the document structure
-      // In real scenarios, you would test with a temporary document
+    test('MoveDocumentsHandler - should support array for from_ids and both destinations', async () => {
+      // Create two parent documents and one child document for testing
+      const createHandler = new CreateDocumentHandler();
+      const context = { siyuan } as any;
+      const timestamp = Date.now();
+
+      // Create two parent documents
+      const parent1Id = await createHandler.execute(
+        {
+          notebook_id: testNotebookId,
+          path: `/test-move-parent1-${timestamp}`,
+          content: `# Test Move Parent 1`,
+        },
+        context
+      );
+
+      const parent2Id = await createHandler.execute(
+        {
+          notebook_id: testNotebookId,
+          path: `/test-move-parent2-${timestamp}`,
+          content: `# Test Move Parent 2`,
+        },
+        context
+      );
+
+      // Create two child documents under parent1
+      const doc1Id = await createHandler.execute(
+        {
+          notebook_id: testNotebookId,
+          path: `/test-move-parent1-${timestamp}/doc1`,
+          content: `# Test Move Document 1`,
+        },
+        context
+      );
+
+      const doc2Id = await createHandler.execute(
+        {
+          notebook_id: testNotebookId,
+          path: `/test-move-parent1-${timestamp}/doc2`,
+          content: `# Test Move Document 2`,
+        },
+        context
+      );
+
+      console.log(`  Created parents: ${parent1Id}, ${parent2Id}`);
+      console.log(`  Created children: ${doc1Id}, ${doc2Id}`);
+
+      const moveHandler = new MoveDocumentsHandler();
+
+      // Test 1: Move single document (from_ids as array with one element)
+      const result1 = await moveHandler.execute(
+        {
+          from_ids: [doc1Id], // Array form with one element
+          to_parent_id: parent2Id,
+        },
+        context
+      );
+
+      expect(result1).toBeDefined();
+      expect(result1.success).toBe(true);
+      expect(result1.moved_count).toBe(1);
+      expect(result1.from_ids).toEqual([doc1Id]);
+      console.log(`  ✓ Moved single document using array form with one element`);
+
+      // Test 2: Move multiple documents using array (from_ids as array)
+      const result2 = await moveHandler.execute(
+        {
+          from_ids: [doc1Id, doc2Id], // Array form
+          to_parent_id: parent1Id,
+        },
+        context
+      );
+
+      expect(result2).toBeDefined();
+      expect(result2.success).toBe(true);
+      expect(result2.moved_count).toBe(2);
+      expect(result2.from_ids).toEqual([doc1Id, doc2Id]);
+      console.log(`  ✓ Moved multiple documents using array form`);
+
+      // Test 3: Move documents to notebook root
+      const result3 = await moveHandler.execute(
+        {
+          from_ids: [doc1Id, doc2Id],
+          to_notebook_root: testNotebookId,  // Move to notebook root
+        },
+        context
+      );
+
+      expect(result3).toBeDefined();
+      expect(result3.success).toBe(true);
+      expect(result3.moved_count).toBe(2);
+      expect(result3.from_ids).toEqual([doc1Id, doc2Id]);
+      console.log(`  ✓ Moved documents to notebook root`);
+
+      console.log('✓ MoveDocumentsHandler supports array for from_ids, and both to_parent_id and to_notebook_root');
     });
   });
 
@@ -417,7 +508,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
         { handler: new AppendToDocumentHandler(), expected: 'append_to_document' },
         { handler: new UpdateDocumentHandler(), expected: 'update_document' },
         { handler: new AppendToDailyNoteHandler(), expected: 'append_to_daily_note' },
-        { handler: new MoveDocumentHandler(), expected: 'move_document' },
+        { handler: new MoveDocumentsHandler(), expected: 'move_documents' },
         { handler: new GetDocumentTreeHandler(), expected: 'get_document_tree' },
         { handler: new ListNotebooksHandler(), expected: 'list_notebooks' },
         {

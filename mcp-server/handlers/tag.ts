@@ -22,37 +22,6 @@ export class ListAllTagsHandler extends BaseToolHandler<Record<string, never>, s
 }
 
 /**
- * 根据标签查找文档
- */
-export class SearchByTagHandler extends BaseToolHandler<
-  { tag: string; limit?: number },
-  any[]
-> {
-  readonly name = 'siyuan_search_by_tag';
-  readonly description = 'Find documents by tag (returns documents that have the specified tag)';
-  readonly inputSchema: JSONSchema = {
-    type: 'object',
-    properties: {
-      tag: {
-        type: 'string',
-        description: 'Tag name to search for (without # symbol, e.g., "项目" not "#项目#")',
-      },
-      limit: {
-        type: 'number',
-        description: 'Maximum number of results to return (default: 50)',
-      },
-    },
-    required: ['tag'],
-  };
-
-  async execute(args: any, context: ExecutionContext): Promise<any[]> {
-    const tag = args.tag;
-    const limit = args.limit || 50;
-    return await context.siyuan.search.searchByTag(tag, limit);
-  }
-}
-
-/**
  * 替换标签
  */
 export class ReplaceTagHandler extends BaseToolHandler<

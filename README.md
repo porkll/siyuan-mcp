@@ -147,7 +147,7 @@ Once configured, you can interact with SiYuan through natural language. The serv
 - **create_document** - Create a new document
 - **append_to_document** - Append content to an existing document
 - **update_document** - Update (overwrite) document content
-- **move_document** - Move document(s) to a new location
+- **move_documents** - Move one or more documents to a new location
 - **get_document_tree** - Get document tree structure with specified depth
 
 ### 📅 Daily Note
@@ -178,6 +178,61 @@ Ask your AI assistant naturally:
 "Append 'Meeting notes: discussed Q4 goals' to today's daily note"
 "Create a snapshot before I make major changes"
 "What's the tree structure of my 'Projects' notebook?"
+"Move document X to the root of my Work notebook"
+"Move documents X and Y under document Z"
+```
+
+## 📖 Tool Parameters Reference
+
+### move_documents
+
+Move one or more documents to a new location.
+
+**Parameters:**
+- `from_ids` (string[]) - **Required**. Array of document IDs to move
+  - For a single document, use an array with one element: `["20210101000000-abc1234"]`
+  - For multiple documents: `["20210101000000-abc1234", "20210102000000-def5678"]`
+- `to_parent_id` (string) - **OPTION 1**: Target parent document ID. Documents will be moved under this document as children. Cannot be used together with `to_notebook_root`.
+- `to_notebook_root` (string) - **OPTION 2**: Target notebook ID. Documents will be moved to the root (top level) of this notebook. Cannot be used together with `to_parent_id`.
+
+**Important:** You must provide EXACTLY ONE destination: either `to_parent_id` OR `to_notebook_root`.
+
+**Examples:**
+```typescript
+// Move single document to notebook root
+{
+  from_ids: ["20210101000000-abc1234"],
+  to_notebook_root: "20210101000000-notebook1"
+}
+
+// Move multiple documents under another document
+{
+  from_ids: ["20210101000000-abc1234", "20210102000000-def5678"],
+  to_parent_id: "20210103000000-parent99"
+}
+```
+
+### batch_replace_tag
+
+Batch replace all occurrences of a tag across all documents.
+
+**Parameters:**
+- `old_tag` (string) - **Required**. Tag name to replace (without # symbol)
+- `new_tag` (string) - **Required**. New tag name (without # symbol, use empty string to remove)
+
+**Examples:**
+```typescript
+// Replace tag
+{
+  old_tag: "project",
+  new_tag: "work-project"
+}
+
+// Remove tag
+{
+  old_tag: "deprecated",
+  new_tag: ""
+}
 ```
 
 ## 🔧 Advanced: Using as TypeScript Library
