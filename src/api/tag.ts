@@ -24,34 +24,33 @@ export class SiyuanTagApi {
       throw new Error('旧标签名不能为空');
     }
 
-    // 查询所有包含旧标签的块
-    const stmt = `SELECT id, tag FROM blocks WHERE tag LIKE '%#${this.escapeSql(cleanOldTag)}#%'`;
+    // 查询所有包含旧标签的块（标签在文档内容中）
+    const stmt = `SELECT id, markdown FROM blocks WHERE markdown LIKE '%#${this.escapeSql(cleanOldTag)}#%'`;
     const response = await this.client.request<Block[]>('/api/query/sql', { stmt });
     const blocks = response.data || [];
 
     const updatedIds: string[] = [];
 
-    // 逐个更新块的标签
+    // 逐个更新块的内容
     for (const block of blocks) {
-      if (!block.tag) continue;
+      if (!block.markdown) continue;
 
       // 替换标签（保持#符号格式）
       const oldTagPattern = `#${cleanOldTag}#`;
       const newTagValue = cleanNewTag ? `#${cleanNewTag}#` : '';
-      let newTagStr = block.tag.replace(new RegExp(oldTagPattern, 'g'), newTagValue);
+      const newMarkdown = block.markdown.replace(new RegExp(oldTagPattern, 'g'), newTagValue);
 
-      // 清理多余的空格
-      newTagStr = newTagStr.replace(/\s+/g, ' ').trim();
+      // 如果内容有变化，才更新
+      if (newMarkdown !== block.markdown) {
+        // 使用 updateBlock API 更新块内容
+        await this.client.request('/api/block/updateBlock', {
+          id: block.id,
+          dataType: 'markdown',
+          data: newMarkdown,
+        });
 
-      // 使用 setBlockAttrs API 更新标签属性
-      await this.client.request('/api/attr/setBlockAttrs', {
-        id: block.id,
-        attrs: {
-          tags: newTagStr,
-        },
-      });
-
-      updatedIds.push(block.id);
+        updatedIds.push(block.id);
+      }
     }
 
     return {
