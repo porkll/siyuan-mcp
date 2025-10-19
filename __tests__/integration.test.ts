@@ -3,7 +3,11 @@
  * Tests all tools with real SiYuan API
  */
 
+import dotenv from 'dotenv';
 import { createSiyuanTools } from '../dist/src/index.js';
+
+// Load environment variables
+dotenv.config();
 import { UnifiedSearchHandler } from '../dist/mcp-server/handlers/search.js';
 import {
   GetDocumentContentHandler,
@@ -28,11 +32,20 @@ import {
   ReplaceTagHandler,
 } from '../dist/mcp-server/handlers/tag.js';
 
-// Test configuration
+// Test configuration from environment variables
 const TEST_CONFIG = {
-  baseUrl: 'http://127.0.0.1:6806',
-  token: '9vtvpbfnlsh7dcz8',
+  baseUrl: process.env.SIYUAN_BASE_URL || 'http://127.0.0.1:6806',
+  token: process.env.SIYUAN_TOKEN || '',
+  testNotebookName: process.env.SIYUAN_TEST_NOTEBOOK || '99测试',
 };
+
+// Validate configuration
+if (!TEST_CONFIG.token) {
+  throw new Error(
+    'SIYUAN_TOKEN is not set. Please create a .env file with SIYUAN_TOKEN. ' +
+    'See .env.example for reference.'
+  );
+}
 
 describe('SiYuan MCP Server Integration Tests', () => {
   let siyuan: ReturnType<typeof createSiyuanTools>;
@@ -42,13 +55,23 @@ describe('SiYuan MCP Server Integration Tests', () => {
   beforeAll(async () => {
     siyuan = createSiyuanTools(TEST_CONFIG.baseUrl, TEST_CONFIG.token);
 
-    // Get first notebook for testing
+    // Find or verify the test notebook
     const notebooks = await siyuan.listNotebooks();
     if (notebooks.length === 0) {
       throw new Error('No notebooks found. Please create at least one notebook in SiYuan.');
     }
-    testNotebookId = notebooks[0].id;
-    console.log(`Using test notebook: ${notebooks[0].name} (${testNotebookId})`);
+
+    // Look for the test notebook "99测试"
+    const testNotebook = notebooks.find(nb => nb.name === TEST_CONFIG.testNotebookName);
+    if (!testNotebook) {
+      throw new Error(
+        `Test notebook "${TEST_CONFIG.testNotebookName}" not found. ` +
+        `Please create a notebook named "${TEST_CONFIG.testNotebookName}" in SiYuan for testing.`
+      );
+    }
+
+    testNotebookId = testNotebook.id;
+    console.log(`✓ Using test notebook: ${testNotebook.name} (${testNotebookId})`);
   });
 
   describe('Notebook Operations', () => {

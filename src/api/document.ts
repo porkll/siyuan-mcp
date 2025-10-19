@@ -162,7 +162,7 @@ export class SiyuanDocumentApi {
   async getDocumentTree(id: string, maxDepth: number = 1): Promise<DocTreeNodeResponse[]> {
     // 使用SQL查询获取文档树结构
     const sql = this.buildTreeQuery(id, maxDepth);
-    const response = await this.client.request<{ rows: any[] }>('/api/query/sql', {
+    const response = await this.client.request<any[]>('/api/query/sql', {
       stmt: sql,
     });
 
@@ -170,8 +170,8 @@ export class SiyuanDocumentApi {
       throw new Error(`Failed to get document tree: ${response.msg}`);
     }
 
-    // 转换为响应树形结构
-    return this.toDocTreeNodeResponse(response.data?.rows || []);
+    // 转换为响应树形结构 - response.data 是对象数组
+    return this.toDocTreeNodeResponse(response.data || []);
   }
 
   /**
@@ -182,6 +182,8 @@ export class SiyuanDocumentApi {
     return `
       WITH RECURSIVE doc_tree AS (
         -- 基础查询：获取起始节点
+        -- 情况1: id 是笔记本ID (box) - 获取该笔记本的顶层文档
+        -- 情况2: id 是文档ID - 获取该文档及其子文档
         SELECT
           b.id,
           b.parent_id,
@@ -195,8 +197,14 @@ export class SiyuanDocumentApi {
           b.ial,
           0 as depth
         FROM blocks b
-        WHERE (b.id = '${id}' OR b.box = '${id}')
-          AND b.type = 'd'
+        WHERE b.type = 'd'
+          AND (
+            -- 情况1: 笔记本的顶层文档 (box匹配且parent_id为空)
+            (b.box = '${id}' AND b.parent_id = '')
+            OR
+            -- 情况2: 指定文档ID
+            b.id = '${id}'
+          )
 
         UNION ALL
 
@@ -226,26 +234,26 @@ export class SiyuanDocumentApi {
   /**
    * 从查询结果构建文档树响应结构
    */
-  private toDocTreeNodeResponse(rows: any[]): DocTreeNodeResponse[] {
-    if (!rows || rows.length === 0) return [];
+  private toDocTreeNodeResponse(data: any[]): DocTreeNodeResponse[] {
+    if (!data || data.length === 0) return [];
 
-    // 将行数据转换为响应节点对象
+    // 将对象数据转换为响应节点对象
     const nodeMap = new Map<string, DocTreeNodeResponse>();
     const rootNodes: DocTreeNodeResponse[] = [];
 
-    rows.forEach((row) => {
+    data.forEach((item) => {
       const node: DocTreeNodeResponse = {
-        id: row[0] as string, // id
-        name: extractTitle(row[3] as string), // content/name
-        path: row[6] as string, // hpath - 人类可读路径
+        id: item.id as string,
+        name: extractTitle(item.content || item.name), // content/name
+        path: item.hpath as string, // 人类可读路径
         children: [],
       };
 
       nodeMap.set(node.id, node);
 
       // 如果是根节点或没有父节点
-      const parentId = row[1] as string; // parent_id
-      const depth = row[10] as number; // depth
+      const parentId = item.parent_id as string;
+      const depth = item.depth as number;
 
       if (depth === 0 || !parentId) {
         rootNodes.push(node);
