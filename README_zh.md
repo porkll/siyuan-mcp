@@ -36,7 +36,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/siyuan-mcp.git
+git clone https://github.com/porkll/siyuan-mcp.git
 cd siyuan-mcp
 
 # 安装依赖
@@ -49,13 +49,17 @@ npm run build
 npm install -g .
 ```
 
-### 方式二：从 npm 安装（发布后可用）
+### 方式二：从 npm 安装
 
 ```bash
-npm install -g siyuan-mcp-server
+# 全局安装
+npm install -g @porkll/siyuan-mcp
+
+# 或使用 npx（无需安装）
+npx @porkll/siyuan-mcp
 ```
 
-安装完成后，`siyuan-mcp` 命令将全局可用。
+全局安装后，`siyuan-mcp` 命令将全局可用。
 
 ## 🔧 配置
 
@@ -78,8 +82,10 @@ npm install -g siyuan-mcp-server
 {
   "mcpServers": {
     "siyuan-mcp": {
-      "command": "siyuan-mcp",
+      "command": "npx",
       "args": [
+        "-y",
+        "@porkll/siyuan-mcp",
         "stdio",
         "--token",
         "你的_API_TOKEN",
@@ -90,6 +96,8 @@ npm install -g siyuan-mcp-server
   }
 }
 ```
+
+**注意**：如果你全局安装了包，可以使用 `"command": "siyuan-mcp"` 替代 `"command": "npx"`。
 
 ### 在 Claude Desktop 中配置
 
@@ -101,8 +109,10 @@ npm install -g siyuan-mcp-server
 {
   "mcpServers": {
     "siyuan-mcp": {
-      "command": "siyuan-mcp",
+      "command": "npx",
       "args": [
+        "-y",
+        "@porkll/siyuan-mcp",
         "stdio",
         "--token",
         "你的_API_TOKEN",
@@ -113,6 +123,8 @@ npm install -g siyuan-mcp-server
   }
 }
 ```
+
+**注意**：如果你全局安装了包，可以使用 `"command": "siyuan-mcp"` 替代 `"command": "npx"`。
 
 ### 验证安装
 
@@ -227,7 +239,7 @@ npm install -g siyuan-mcp-server
 虽然主要设计为 MCP 服务器，你也可以在自己的项目中将此包作为 TypeScript 库使用：
 
 ```typescript
-import { createSiyuanTools } from 'siyuan-mcp-server';
+import { createSiyuanTools } from '@porkll/siyuan-mcp';
 
 // 创建实例
 const siyuan = createSiyuanTools('http://127.0.0.1:6806', 'your-token');
@@ -275,7 +287,7 @@ import type {
   NotebookConf,
   DocTreeNode,
   SearchOptions
-} from 'siyuan-mcp-server';
+} from '@porkll/siyuan-mcp';
 ```
 
 ## 💻 开发

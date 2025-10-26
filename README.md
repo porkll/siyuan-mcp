@@ -49,7 +49,7 @@ The code in this project is primarily developed with AI assistance. While functi
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/siyuan-mcp.git
+git clone https://github.com/porkll/siyuan-mcp.git
 cd siyuan-mcp
 
 # Install dependencies
@@ -62,13 +62,17 @@ npm run build
 npm install -g .
 ```
 
-### Option 2: Install from npm (When Published)
+### Option 2: Install from npm
 
 ```bash
-npm install -g siyuan-mcp-server
+# Install globally
+npm install -g @porkll/siyuan-mcp
+
+# Or use npx (no installation needed)
+npx @porkll/siyuan-mcp
 ```
 
-After installation, the `siyuan-mcp` command will be available globally.
+After global installation, the `siyuan-mcp` command will be available globally.
 
 ## 🔧 Configuration
 
@@ -91,8 +95,10 @@ Edit your MCP configuration file at `~/.cursor/mcp.json`:
 {
   "mcpServers": {
     "siyuan-mcp": {
-      "command": "siyuan-mcp",
+      "command": "npx",
       "args": [
+        "-y",
+        "@porkll/siyuan-mcp",
         "stdio",
         "--token",
         "YOUR_API_TOKEN_HERE",
@@ -103,6 +109,8 @@ Edit your MCP configuration file at `~/.cursor/mcp.json`:
   }
 }
 ```
+
+**Note**: If you installed globally, you can use `"command": "siyuan-mcp"` instead of `"command": "npx"`.
 
 ### Configure for Claude Desktop
 
@@ -114,8 +122,10 @@ Edit the configuration file at:
 {
   "mcpServers": {
     "siyuan-mcp": {
-      "command": "siyuan-mcp",
+      "command": "npx",
       "args": [
+        "-y",
+        "@porkll/siyuan-mcp",
         "stdio",
         "--token",
         "YOUR_API_TOKEN_HERE",
@@ -126,6 +136,8 @@ Edit the configuration file at:
   }
 }
 ```
+
+**Note**: If you installed globally, you can use `"command": "siyuan-mcp"` instead of `"command": "npx"`.
 
 ### Verify Installation
 
@@ -240,7 +252,7 @@ Batch replace all occurrences of a tag across all documents.
 While primarily designed as an MCP server, you can also use this package as a TypeScript library in your own projects:
 
 ```typescript
-import { createSiyuanTools } from 'siyuan-mcp-server';
+import { createSiyuanTools } from '@porkll/siyuan-mcp';
 
 // Create an instance
 const siyuan = createSiyuanTools('http://127.0.0.1:6806', 'your-token');
@@ -288,7 +300,7 @@ import type {
   NotebookConf,
   DocTreeNode,
   SearchOptions
-} from 'siyuan-mcp-server';
+} from '@porkll/siyuan-mcp';
 ```
 
 ## 💻 Development
@@ -297,7 +309,7 @@ import type {
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/siyuan-mcp.git
+git clone https://github.com/porkll/siyuan-mcp.git
 cd siyuan-mcp
 npm install
 

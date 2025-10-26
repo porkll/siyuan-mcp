@@ -1,5 +1,5 @@
 {
-  "name": "siyuan-mcp-server",
+  "name": "@porkll/siyuan-mcp",
   "version": "0.1.1",
   "description": "SiYuan Note MCP Server - Model Context Protocol server for SiYuan Note",
   "main": "dist/index.js",
@@ -36,7 +36,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/siyuan-tools"
+    "url": "git+https://github.com/porkll/siyuan-mcp.git"
   },
   "engines": {
     "node": ">=18.0.0"
