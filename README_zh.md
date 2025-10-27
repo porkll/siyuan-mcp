@@ -163,6 +163,8 @@ npx @porkll/siyuan-mcp
 
 ### 🏷️ 标签管理
 - **list_all_tags** - 列出工作空间中的所有标签
+  - 支持按前缀过滤（`prefix` 参数）
+  - 支持按层级限制（`depth` 参数，从1开始，标签用 `/` 分隔层级）
 - **batch_replace_tag** - 批量替换或删除标签
 
 ### 使用示例

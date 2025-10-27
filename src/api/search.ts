@@ -85,31 +85,55 @@ export class SiyuanSearchApi {
 
   /**
    * 列出所有标签
+   * @param prefix 可选的标签前缀过滤
+   * @param depth 可选的层级限制（从1开始计数，例如 depth=1 只返回顶层标签）
    * @returns 标签数组（去重后的）
    */
-  async listAllTags(): Promise<string[]> {
-    // 查询所有带标签的块（tag字段非空）
-    const stmt = `SELECT DISTINCT tag FROM blocks WHERE tag != '' AND tag IS NOT NULL`;
-    const response = await this.client.request<Array<{ tag: string }>>('/api/query/sql', { stmt });
-    const blocks = response.data || [];
+  async listAllTags(prefix?: string, depth?: number): Promise<string[]> {
+    // 使用思源官方的标签 API
+    const response = await this.client.request<Array<{
+      name: string;
+      label: string;
+      children?: any[];
+      type: string;
+      depth: number;
+      count: number;
+    }>>('/api/tag/getTag', {});
 
-    // 展开多标签（标签可能是用逗号或空格分隔的）
+    const tags = response.data || [];
+
+    // 递归提取所有标签的 label
     const tagSet = new Set<string>();
-    blocks.forEach(block => {
-      if (block.tag) {
-        // 按空格分割标签（思源的标签格式如：#tag1# #tag2#）
-        const tags = block.tag.split(/\s+/).filter(t => t.trim());
-        tags.forEach(tag => {
-          // 移除 # 符号并添加到集合
-          const cleanTag = tag.replace(/#/g, '').trim();
-          if (cleanTag) {
-            tagSet.add(cleanTag);
-          }
-        });
+    const extractTags = (tagList: any[]) => {
+      for (const tag of tagList) {
+        if (tag.label) {
+          tagSet.add(tag.label);
+        }
+        // 递归处理子标签
+        if (tag.children && tag.children.length > 0) {
+          extractTags(tag.children);
+        }
       }
-    });
+    };
+    extractTags(tags);
 
-    return Array.from(tagSet).sort();
+    let result = Array.from(tagSet);
+
+    // 应用前缀过滤
+    if (prefix) {
+      result = result.filter(tag => tag.startsWith(prefix));
+    }
+
+    // 应用层级限制
+    if (depth && depth > 0) {
+      result = result.filter(tag => {
+        // 计算标签的层级（通过分隔符 '/' 来判断）
+        const level = tag.split('/').length;
+        return level <= depth;
+      });
+    }
+
+    return result.sort();
   }
 
   /**

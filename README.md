@@ -176,6 +176,8 @@ Once configured, you can interact with SiYuan through natural language. The serv
 
 ### 🏷️ Tag Management
 - **list_all_tags** - List all unique tags in workspace
+  - Supports filtering by prefix (`prefix` parameter)
+  - Supports limiting by depth level (`depth` parameter, starts from 1, tags separated by `/`)
 - **batch_replace_tag** - Batch replace or remove tags across all documents
 
 ### Usage Examples

@@ -8,16 +8,31 @@ import type { ExecutionContext, JSONSchema } from '../core/types.js';
 /**
  * 列出所有标签
  */
-export class ListAllTagsHandler extends BaseToolHandler<Record<string, never>, string[]> {
+export class ListAllTagsHandler extends BaseToolHandler<
+  { prefix?: string; depth?: number },
+  string[]
+> {
   readonly name = 'list_all_tags';
-  readonly description = 'List all unique document tags used in SiYuan workspace';
+  readonly description =
+    'List all unique document tags used in SiYuan workspace. Supports filtering by prefix and limiting by depth level.';
   readonly inputSchema: JSONSchema = {
     type: 'object',
-    properties: {},
+    properties: {
+      prefix: {
+        type: 'string',
+        description:
+          'Optional: Filter tags by prefix. Only tags starting with this prefix will be returned (e.g., "project" will match "project", "project/frontend", etc.)',
+      },
+      depth: {
+        type: 'number',
+        description:
+          'Optional: Limit tag hierarchy depth (starts from 1). For example, depth=1 returns only top-level tags (e.g., "project"), depth=2 includes second level (e.g., "project/frontend"). Tags are split by "/" separator.',
+      },
+    },
   };
 
-  async execute(_args: any, context: ExecutionContext): Promise<string[]> {
-    return await context.siyuan.search.listAllTags();
+  async execute(args: any, context: ExecutionContext): Promise<string[]> {
+    return await context.siyuan.search.listAllTags(args.prefix, args.depth);
   }
 }
 
