@@ -90,23 +90,34 @@ export class SiyuanSearchApi {
    * @returns 标签数组（去重后的）
    */
   async listAllTags(prefix?: string, depth?: number): Promise<string[]> {
-    // 直接查询 spans 表获取所有标签，绕过思源 API 的 512 条限制
-    // 注意：不使用 DISTINCT，因为我们需要从 content 字段中提取标签
-    const stmt = `SELECT content FROM spans WHERE type LIKE '%tag%'`;
-    const response = await this.client.request<Array<{ content: string }>>('/api/query/sql', { stmt });
-    const spans = response.data || [];
+    // 使用思源官方的标签 API，传递 sort 参数
+    // 注意：此 API 有 512 条的软限制（Conf.FileTree.MaxListCount）
+    // 但对于大多数用户来说足够使用
+    const response = await this.client.request<Array<{
+      name: string;
+      label: string;
+      children?: any[];
+      type: string;
+      depth: number;
+      count: number;
+    }>>('/api/tag/getTag', { sort: 4 });
 
-    // 提取并去重所有标签
+    const tags = response.data || [];
+
+    // 递归提取所有标签的 label（包括子标签）
     const tagSet = new Set<string>();
-    spans.forEach(span => {
-      if (span.content) {
-        // 标签内容已经是纯文本，无需去除 # 符号
-        const cleanTag = span.content.trim();
-        if (cleanTag) {
-          tagSet.add(cleanTag);
+    const extractTags = (tagList: any[]) => {
+      for (const tag of tagList) {
+        if (tag.label) {
+          tagSet.add(tag.label);
+        }
+        // 递归处理子标签
+        if (tag.children && tag.children.length > 0) {
+          extractTags(tag.children);
         }
       }
-    });
+    };
+    extractTags(tags);
 
     let result = Array.from(tagSet);
 
