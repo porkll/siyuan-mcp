@@ -468,14 +468,16 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('CreateSnapshotHandler - should create snapshot', async () => {
       const handler = new CreateSnapshotHandler();
       const context = { siyuan } as any;
-      const result = await handler.execute(
-        { memo: `Test snapshot - ${new Date().toISOString()}` },
-        context
-      );
+      const memo = `Test snapshot - ${new Date().toISOString()}`;
+      const result = await handler.execute({ memo }, context);
 
-      expect(result).toBeUndefined(); // Returns void
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('memo', memo);
+      expect(result).toHaveProperty('message');
+      expect(result.message).toContain('Snapshot created successfully');
 
-      console.log('✓ Created snapshot successfully');
+      console.log(`✓ Created snapshot successfully: ${result.message}`);
     });
 
     test('ListSnapshotsHandler - should list snapshots', async () => {

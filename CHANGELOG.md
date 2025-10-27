@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.1.6] - 2025-10-27
+
+### Improved
+- 改进 `create_snapshot` 工具，现在返回有意义的成功信息（包括 success、memo、message 字段）
+- 改进 `rollback_to_snapshot` 工具，现在返回有意义的成功信息（包括 success、snapshot_id、message 字段）
+
+### Changed
+- API 设计改进：所有工具现在都返回有意义的结果，而不是 void
+
 ## [0.1.5] - 2025-10-27
 
 ### Fixed

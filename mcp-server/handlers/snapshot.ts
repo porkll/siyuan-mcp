@@ -8,7 +8,10 @@ import type { ExecutionContext, JSONSchema } from '../core/types.js';
 /**
  * 创建数据快照
  */
-export class CreateSnapshotHandler extends BaseToolHandler<{ memo?: string }, void> {
+export class CreateSnapshotHandler extends BaseToolHandler<
+  { memo?: string },
+  { success: boolean; memo: string; message: string }
+> {
   readonly name = 'create_snapshot';
   readonly description = 'Create a data snapshot to backup current state (防止误操作可回滚)';
   readonly inputSchema: JSONSchema = {
@@ -21,9 +24,16 @@ export class CreateSnapshotHandler extends BaseToolHandler<{ memo?: string }, vo
     },
   };
 
-  async execute(args: any, context: ExecutionContext): Promise<void> {
+  async execute(
+    args: any,
+    context: ExecutionContext
+  ): Promise<{ success: boolean; memo: string; message: string }> {
     const memo = args.memo || 'Auto snapshot';
-    await context.siyuan.snapshot.createSnapshot(memo);
+    const result = await context.siyuan.snapshot.createSnapshot(memo);
+    return {
+      ...result,
+      message: `Snapshot created successfully with memo: "${memo}"`,
+    };
   }
 }
 
@@ -58,7 +68,10 @@ export class ListSnapshotsHandler extends BaseToolHandler<
 /**
  * 回滚到指定快照
  */
-export class RollbackSnapshotHandler extends BaseToolHandler<{ snapshot_id: string }, void> {
+export class RollbackSnapshotHandler extends BaseToolHandler<
+  { snapshot_id: string },
+  { success: boolean; snapshot_id: string; message: string }
+> {
   readonly name = 'rollback_to_snapshot';
   readonly description = 'Rollback to a specific snapshot (恢复到指定快照状态)';
   readonly inputSchema: JSONSchema = {
@@ -72,7 +85,15 @@ export class RollbackSnapshotHandler extends BaseToolHandler<{ snapshot_id: stri
     required: ['snapshot_id'],
   };
 
-  async execute(args: any, context: ExecutionContext): Promise<void> {
+  async execute(
+    args: any,
+    context: ExecutionContext
+  ): Promise<{ success: boolean; snapshot_id: string; message: string }> {
     await context.siyuan.snapshot.rollbackToSnapshot(args.snapshot_id);
+    return {
+      success: true,
+      snapshot_id: args.snapshot_id,
+      message: `Successfully rolled back to snapshot: ${args.snapshot_id}`,
+    };
   }
 }
