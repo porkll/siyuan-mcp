@@ -140,11 +140,21 @@ export class SiyuanMCPServer {
         const result = await handler.execute(args || {}, this.context);
 
         // 格式化返回结果（符合 MCP 协议）
+        // 处理 void 返回值（undefined）
+        let text: string;
+        if (result === undefined) {
+          text = 'Success';
+        } else if (typeof result === 'string') {
+          text = result;
+        } else {
+          text = JSON.stringify(result, null, 2);
+        }
+
         return {
           content: [
             {
               type: 'text' as const,
-              text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+              text,
             },
           ],
         };

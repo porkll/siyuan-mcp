@@ -1,4 +1,4 @@
-.PHONY: init install build test test-watch clean
+.PHONY: init install build test test-watch clean publish release-patch release-minor release-major
 
 init:
 	npm install
@@ -20,3 +20,6 @@ test-watch:
 
 clean:
 	rm -rf dist dist-test node_modules/.cache
+
+publish:
+	npm publish --access public @porkll/siyuan-mcp
