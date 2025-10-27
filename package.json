@@ -1,6 +1,6 @@
 {
   "name": "@porkll/siyuan-mcp",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "SiYuan Note MCP Server - Model Context Protocol server for SiYuan Note",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
