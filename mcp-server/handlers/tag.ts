@@ -41,11 +41,11 @@ export class ListAllTagsHandler extends BaseToolHandler<
  */
 export class ReplaceTagHandler extends BaseToolHandler<
   { old_tag: string; new_tag: string },
-  { count: number; updatedIds: string[] }
+  boolean
 > {
   readonly name = 'batch_replace_tag';
   readonly description =
-    'Batch replace all occurrences of a tag with another tag across all documents. Use empty string for new_tag to remove the tag.';
+    'Batch replace all occurrences of a tag with another tag across all documents using official SiYuan API. Use empty string for new_tag to remove the tag.';
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -62,10 +62,7 @@ export class ReplaceTagHandler extends BaseToolHandler<
     required: ['old_tag', 'new_tag'],
   };
 
-  async execute(
-    args: any,
-    context: ExecutionContext
-  ): Promise<{ count: number; updatedIds: string[] }> {
+  async execute(args: any, context: ExecutionContext): Promise<boolean> {
     const oldTag = args.old_tag;
     const newTag = args.new_tag || '';
     return await context.siyuan.tag.replaceTag(oldTag, newTag);
