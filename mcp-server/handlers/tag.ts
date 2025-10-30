@@ -10,11 +10,11 @@ import type { ExecutionContext, JSONSchema } from '../core/types.js';
  */
 export class ListAllTagsHandler extends BaseToolHandler<
   { prefix?: string; depth?: number },
-  string[]
+  Array<{ label: string; document_count: number }>
 > {
   readonly name = 'list_all_tags';
   readonly description =
-    'List all unique document tags used in SiYuan workspace. Supports filtering by prefix and limiting by depth level.';
+    'List all unique document tags used in SiYuan workspace with their usage counts. Returns tag labels and document counts in an LLM-friendly format. Supports filtering by prefix and limiting by depth level.';
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -31,7 +31,7 @@ export class ListAllTagsHandler extends BaseToolHandler<
     },
   };
 
-  async execute(args: any, context: ExecutionContext): Promise<string[]> {
+  async execute(args: any, context: ExecutionContext): Promise<Array<{ label: string; document_count: number }>> {
     return await context.siyuan.search.listAllTags(args.prefix, args.depth);
   }
 }

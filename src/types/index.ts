@@ -135,3 +135,11 @@ export interface BlockOperationOptions {
   parentID?: string;
   nextID?: string;
 }
+
+/**
+ * 标签响应结构(API返回)
+ */
+export interface TagResponse {
+  label: string; // 标签完整路径,如 "产品/策略"
+  document_count: number; // 使用该标签的文档数量
+}
