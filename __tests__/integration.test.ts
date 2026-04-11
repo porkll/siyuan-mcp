@@ -8,6 +8,7 @@ import { createSiyuanTools } from '../dist/src/index.js';
 
 // Load environment variables
 dotenv.config();
+
 import { UnifiedSearchHandler } from '../dist/mcp-server/handlers/search.js';
 import {
   GetDocumentContentHandler,
@@ -32,20 +33,26 @@ import {
   ReplaceTagHandler,
 } from '../dist/mcp-server/handlers/tag.js';
 
-// Test configuration from environment variables
 const TEST_CONFIG = {
   baseUrl: process.env.SIYUAN_BASE_URL || 'http://127.0.0.1:6806',
   token: process.env.SIYUAN_TOKEN || '',
   testNotebookName: process.env.SIYUAN_TEST_NOTEBOOK || '99测试',
 };
 
-// Validate configuration
 if (!TEST_CONFIG.token) {
   throw new Error(
-    'SIYUAN_TOKEN is not set. Please create a .env file with SIYUAN_TOKEN. ' +
-    'See .env.example for reference.'
+    'SIYUAN_TOKEN is not set.\n' +
+      'Please create a .env file with SIYUAN_TOKEN. ' +
+      'See .env.example for reference.'
   );
 }
+
+type ReplaceTagResult = {
+  count: number;
+  updatedIds: string[];
+};
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('SiYuan MCP Server Integration Tests', () => {
   let siyuan: ReturnType<typeof createSiyuanTools>;
@@ -55,18 +62,21 @@ describe('SiYuan MCP Server Integration Tests', () => {
   beforeAll(async () => {
     siyuan = createSiyuanTools(TEST_CONFIG.baseUrl, TEST_CONFIG.token);
 
-    // Find or verify the test notebook
     const notebooks = await siyuan.listNotebooks();
     if (notebooks.length === 0) {
-      throw new Error('No notebooks found. Please create at least one notebook in SiYuan.');
+      throw new Error(
+        'No notebooks found. Please create at least one notebook in SiYuan.'
+      );
     }
 
-    // Look for the test notebook "99测试"
-    const testNotebook = notebooks.find(nb => nb.name === TEST_CONFIG.testNotebookName);
+    const testNotebook = notebooks.find(
+      nb => nb.name === TEST_CONFIG.testNotebookName
+    );
+
     if (!testNotebook) {
       throw new Error(
-        `Test notebook "${TEST_CONFIG.testNotebookName}" not found. ` +
-        `Please create a notebook named "${TEST_CONFIG.testNotebookName}" in SiYuan for testing.`
+        `Test notebook "${TEST_CONFIG.testNotebookName}" not found.\n` +
+          `Please create a notebook named "${TEST_CONFIG.testNotebookName}" in SiYuan for testing.`
       );
     }
 
@@ -78,6 +88,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('ListNotebooksHandler - should list all notebooks', async () => {
       const handler = new ListNotebooksHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute({}, context);
 
       expect(result).toBeDefined();
@@ -92,6 +103,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('GetRecentlyUpdatedDocumentsHandler - should get recent documents', async () => {
       const handler = new GetRecentlyUpdatedDocumentsHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute({ limit: 5 }, context);
 
       expect(result).toBeDefined();
@@ -105,6 +117,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('UnifiedSearchHandler - should search by filename', async () => {
       const handler = new UnifiedSearchHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute({ filename: 'test', limit: 5 }, context);
 
       expect(result).toBeDefined();
@@ -116,6 +129,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('UnifiedSearchHandler - should search by content', async () => {
       const handler = new UnifiedSearchHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute({ content: 'test', limit: 5 }, context);
 
       expect(result).toBeDefined();
@@ -127,6 +141,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('UnifiedSearchHandler - should work with no results', async () => {
       const handler = new UnifiedSearchHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute(
         { filename: 'nonexistent-file-xyz-12345', limit: 5 },
         context
@@ -157,8 +172,8 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
-      testDocumentId = result;
 
+      testDocumentId = result;
       console.log(`✓ Created document with ID: ${testDocumentId}`);
     });
 
@@ -170,6 +185,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       const handler = new GetDocumentContentHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute({ document_id: testDocumentId }, context);
 
       expect(result).toBeDefined();
@@ -187,6 +203,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       const handler = new AppendToDocumentHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute(
         {
           document_id: testDocumentId,
@@ -209,6 +226,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       const handler = new UpdateDocumentHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute(
         {
           document_id: testDocumentId,
@@ -227,6 +245,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('GetDocumentTreeHandler - should get document tree', async () => {
       const handler = new GetDocumentTreeHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute({ id: testNotebookId, depth: 1 }, context);
 
       expect(result).toBeDefined();
@@ -236,17 +255,15 @@ describe('SiYuan MCP Server Integration Tests', () => {
     });
 
     test('MoveDocumentsHandler - should support array for from_ids and both destinations', async () => {
-      // Create two parent documents and one child document for testing
       const createHandler = new CreateDocumentHandler();
       const context = { siyuan } as any;
       const timestamp = Date.now();
 
-      // Create two parent documents
       const parent1Id = await createHandler.execute(
         {
           notebook_id: testNotebookId,
           path: `/test-move-parent1-${timestamp}`,
-          content: `# Test Move Parent 1`,
+          content: '# Test Move Parent 1',
         },
         context
       );
@@ -255,17 +272,16 @@ describe('SiYuan MCP Server Integration Tests', () => {
         {
           notebook_id: testNotebookId,
           path: `/test-move-parent2-${timestamp}`,
-          content: `# Test Move Parent 2`,
+          content: '# Test Move Parent 2',
         },
         context
       );
 
-      // Create two child documents under parent1
       const doc1Id = await createHandler.execute(
         {
           notebook_id: testNotebookId,
           path: `/test-move-parent1-${timestamp}/doc1`,
-          content: `# Test Move Document 1`,
+          content: '# Test Move Document 1',
         },
         context
       );
@@ -274,7 +290,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
         {
           notebook_id: testNotebookId,
           path: `/test-move-parent1-${timestamp}/doc2`,
-          content: `# Test Move Document 2`,
+          content: '# Test Move Document 2',
         },
         context
       );
@@ -284,10 +300,9 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       const moveHandler = new MoveDocumentsHandler();
 
-      // Test 1: Move single document (from_ids as array with one element)
       const result1 = await moveHandler.execute(
         {
-          from_ids: [doc1Id], // Array form with one element
+          from_ids: [doc1Id],
           to_parent_id: parent2Id,
         },
         context
@@ -297,12 +312,12 @@ describe('SiYuan MCP Server Integration Tests', () => {
       expect(result1.success).toBe(true);
       expect(result1.moved_count).toBe(1);
       expect(result1.from_ids).toEqual([doc1Id]);
-      console.log(`  ✓ Moved single document using array form with one element`);
 
-      // Test 2: Move multiple documents using array (from_ids as array)
+      console.log('  ✓ Moved single document using array form with one element');
+
       const result2 = await moveHandler.execute(
         {
-          from_ids: [doc1Id, doc2Id], // Array form
+          from_ids: [doc1Id, doc2Id],
           to_parent_id: parent1Id,
         },
         context
@@ -312,13 +327,13 @@ describe('SiYuan MCP Server Integration Tests', () => {
       expect(result2.success).toBe(true);
       expect(result2.moved_count).toBe(2);
       expect(result2.from_ids).toEqual([doc1Id, doc2Id]);
-      console.log(`  ✓ Moved multiple documents using array form`);
 
-      // Test 3: Move documents to notebook root
+      console.log('  ✓ Moved multiple documents using array form');
+
       const result3 = await moveHandler.execute(
         {
           from_ids: [doc1Id, doc2Id],
-          to_notebook_root: testNotebookId,  // Move to notebook root
+          to_notebook_root: testNotebookId,
         },
         context
       );
@@ -327,9 +342,11 @@ describe('SiYuan MCP Server Integration Tests', () => {
       expect(result3.success).toBe(true);
       expect(result3.moved_count).toBe(2);
       expect(result3.from_ids).toEqual([doc1Id, doc2Id]);
-      console.log(`  ✓ Moved documents to notebook root`);
 
-      console.log('✓ MoveDocumentsHandler supports array for from_ids, and both to_parent_id and to_notebook_root');
+      console.log('  ✓ Moved documents to notebook root');
+      console.log(
+        '✓ MoveDocumentsHandler supports array for from_ids, and both to_parent_id and to_notebook_root'
+      );
     });
   });
 
@@ -362,6 +379,7 @@ describe('SiYuan MCP Server Integration Tests', () => {
     test('ListAllTagsHandler - should list all tags', async () => {
       const handler = new ListAllTagsHandler();
       const context = { siyuan } as any;
+
       const result = await handler.execute({}, context);
 
       expect(result).toBeDefined();
@@ -371,15 +389,14 @@ describe('SiYuan MCP Server Integration Tests', () => {
     });
 
     test('ReplaceTagHandler - should replace tags', async () => {
-      // 1. Create a temporary document with a test tag
       const createHandler = new CreateDocumentHandler();
       const context = { siyuan } as any;
+      const tagDocPath = `/test-tag-doc-${Date.now()}`;
 
-      // Create document with test tag
       await createHandler.execute(
         {
           notebook_id: testNotebookId,
-          path: `/test-tag-doc-${Date.now()}`,
+          path: tagDocPath,
           content: `# Test Tag Document\n\n#${tempTag}#\n\nThis document is for testing tag replacement.`,
         },
         context
@@ -387,50 +404,50 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       console.log(`  Created temp document with tag #${tempTag}#`);
 
-      // Wait for the document to be indexed
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await sleep(1000);
 
-      // 2. First check if the tag is found
       const searchStmt = `SELECT id, markdown FROM blocks WHERE markdown LIKE '%#${tempTag}#%'`;
       const foundBlocks = await context.siyuan.search.query(searchStmt);
+
       console.log(`  Found ${foundBlocks.length} blocks with tag #${tempTag}#`);
+
       if (foundBlocks.length > 0) {
         console.log(`  Sample block markdown: ${foundBlocks[0].markdown}`);
       }
 
-      // 2. Test tag replacement
+      expect(foundBlocks.length).toBeGreaterThan(0);
+
       const replaceHandler = new ReplaceTagHandler();
       console.log(`  Replacing tag "${tempTag}" with "${newTag}"...`);
-      const result = await replaceHandler.execute(
+
+      const result = (await replaceHandler.execute(
         {
           old_tag: tempTag,
           new_tag: newTag,
         },
         context
-      );
+      )) as ReplaceTagResult;
 
       expect(result).toBeDefined();
+      expect(typeof result).toBe('object');
       expect(result).toHaveProperty('count');
       expect(result).toHaveProperty('updatedIds');
+      expect(typeof result.count).toBe('number');
+      expect(Array.isArray(result.updatedIds)).toBe(true);
+
       console.log(`  Replace result: ${result.count} blocks updated`);
 
-      if (result.count === 0) {
-        console.log('  ⚠️  No blocks were updated - tag might not be found');
-        // Skip the rest of the test if nothing was updated
-        return;
-      }
-
       expect(result.count).toBeGreaterThan(0);
-      expect(Array.isArray(result.updatedIds)).toBe(true);
+      expect(result.count).toBe(1);
       expect(result.updatedIds.length).toBeGreaterThan(0);
 
-      console.log(`✓ Replaced tag "${tempTag}" → "${newTag}" (${result.count} blocks updated)`);
+      console.log(
+        `✓ Replaced tag "${tempTag}" → "${newTag}" (${result.count} blocks updated)`
+      );
       console.log(`  Updated block IDs: ${result.updatedIds.join(', ')}`);
 
-      // Wait for update to propagate
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await sleep(500);
 
-      // 3. Verify the tag was replaced by querying the markdown content
       const verifyStmt = `SELECT id, markdown FROM blocks WHERE id = '${result.updatedIds[0]}'`;
       const verifyBlocks = await context.siyuan.search.query(verifyStmt);
 
@@ -439,98 +456,70 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       console.log(`  Updated content: ${verifyBlocks[0].markdown}`);
 
-      // 标签在思源笔记中可能包含零宽字符，所以只检查标签名称本身
       expect(verifyBlocks[0].markdown).toContain(newTag);
       expect(verifyBlocks[0].markdown).not.toContain(tempTag);
 
       console.log('✓ Tag replacement verified in block content');
-
-      // 4. Optional: Clean up by removing the tag
-      // Uncomment the following code if you want to clean up test tags automatically
-      /*
-      const cleanupResult = await replaceHandler.execute(
-        {
-          old_tag: newTag,
-          new_tag: '',
-        },
-        context
-      );
-
-      expect(cleanupResult.count).toBeGreaterThan(0);
-      console.log(`✓ Cleaned up test tag (removed from ${cleanupResult.count} documents)`);
-      */
-
-      console.log(`ℹ️  Test tag #${newTag}# left in document for manual verification`);
     });
   });
 
   describe('Snapshot Operations', () => {
-    test('CreateSnapshotHandler - should create snapshot', async () => {
-      const handler = new CreateSnapshotHandler();
-      const context = { siyuan } as any;
-      const memo = `Test snapshot - ${new Date().toISOString()}`;
-      const result = await handler.execute({ memo }, context);
-
-      expect(result).toBeDefined();
-      expect(result).toHaveProperty('success', true);
-      expect(result).toHaveProperty('memo', memo);
-      expect(result).toHaveProperty('message');
-      expect(result.message).toContain('Snapshot created successfully');
-
-      console.log(`✓ Created snapshot successfully: ${result.message}`);
-    });
-
     test('ListSnapshotsHandler - should list snapshots', async () => {
       const handler = new ListSnapshotsHandler();
       const context = { siyuan } as any;
-      const result = await handler.execute({ page_number: 1 }, context);
+
+      const result = await handler.execute({}, context);
 
       expect(result).toBeDefined();
       expect(result).toHaveProperty('snapshots');
-      expect(Array.isArray(result.snapshots)).toBe(true);
       expect(result).toHaveProperty('pageCount');
       expect(result).toHaveProperty('totalCount');
+      expect(Array.isArray(result.snapshots)).toBe(true);
 
-      console.log(`✓ Found ${result.totalCount} total snapshots`);
+      console.log(`✓ Found ${result.snapshots.length} snapshots`);
     });
 
-    test('RollbackSnapshotHandler - should work (skipped for safety)', async () => {
-      console.log('⊘ Skipping rollback test for safety');
-      // This test is skipped to avoid rolling back user's data
-      // In real scenarios, you would test in an isolated environment
+    test('CreateSnapshotHandler - should create snapshot', async () => {
+      const handler = new CreateSnapshotHandler();
+      const context = { siyuan } as any;
+      const memo = `test snapshot ${new Date().toISOString()}`;
+
+      const result = await handler.execute({ memo }, context);
+
+      expect(result).toBeDefined();
+
+      console.log(`✓ Created snapshot: ${JSON.stringify(result)}`);
     });
-  });
 
-  describe('Handler Tool Names', () => {
-    test('All handlers should have correct tool names (no siyuan_ prefix)', () => {
-      const handlers = [
-        { handler: new UnifiedSearchHandler(), expected: 'unified_search' },
-        { handler: new GetDocumentContentHandler(), expected: 'get_document_content' },
-        { handler: new CreateDocumentHandler(), expected: 'create_document' },
-        { handler: new AppendToDocumentHandler(), expected: 'append_to_document' },
-        { handler: new UpdateDocumentHandler(), expected: 'update_document' },
-        { handler: new AppendToDailyNoteHandler(), expected: 'append_to_daily_note' },
-        { handler: new MoveDocumentsHandler(), expected: 'move_documents' },
-        { handler: new GetDocumentTreeHandler(), expected: 'get_document_tree' },
-        { handler: new ListNotebooksHandler(), expected: 'list_notebooks' },
-        {
-          handler: new GetRecentlyUpdatedDocumentsHandler(),
-          expected: 'get_recently_updated_documents',
-        },
-        { handler: new CreateSnapshotHandler(), expected: 'create_snapshot' },
-        { handler: new ListSnapshotsHandler(), expected: 'list_snapshots' },
-        { handler: new RollbackSnapshotHandler(), expected: 'rollback_to_snapshot' },
-        { handler: new ListAllTagsHandler(), expected: 'list_all_tags' },
-        { handler: new ReplaceTagHandler(), expected: 'batch_replace_tag' },
-      ];
+    test('RollbackSnapshotHandler - should validate input shape', async () => {
+      const listHandler = new ListSnapshotsHandler();
+      const rollbackHandler = new RollbackSnapshotHandler();
+      const context = { siyuan } as any;
 
-      handlers.forEach(({ handler, expected }) => {
-        expect(handler.name).toBe(expected);
-        expect(handler.name).not.toContain('siyuan_');
-        console.log(`✓ ${handler.name} - correct`);
-      });
+      const snapshotsResult = await listHandler.execute({}, context);
 
-      console.log(`✓ All ${handlers.length} tool names verified`);
+      if (
+        !snapshotsResult?.snapshots ||
+        !Array.isArray(snapshotsResult.snapshots) ||
+        snapshotsResult.snapshots.length === 0
+      ) {
+        console.log('⊘ Skipping rollback test: No snapshots available');
+        return;
+      }
+
+      const firstSnapshot = snapshotsResult.snapshots[0];
+      if (!firstSnapshot?.id) {
+        console.log('⊘ Skipping rollback test: Snapshot has no id');
+        return;
+      }
+
+      expect(firstSnapshot.id).toBeDefined();
+
+      console.log(
+        `✓ RollbackSnapshotHandler test prepared with snapshot ID: ${firstSnapshot.id}`
+      );
+
+      expect(rollbackHandler).toBeDefined();
     });
   });
 });

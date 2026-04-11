@@ -41,11 +41,12 @@ export class ListAllTagsHandler extends BaseToolHandler<
  */
 export class ReplaceTagHandler extends BaseToolHandler<
   { old_tag: string; new_tag: string },
-  boolean
+  { count: number; updatedIds: string[] }
 > {
   readonly name = 'batch_replace_tag';
   readonly description =
     'Rename or remove a tag across all notes in SiYuan. Useful for reorganizing your knowledge base tags. Use empty string for new_tag to remove the tag entirely';
+
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -62,9 +63,81 @@ export class ReplaceTagHandler extends BaseToolHandler<
     required: ['old_tag', 'new_tag'],
   };
 
-  async execute(args: any, context: ExecutionContext): Promise<boolean> {
+  async execute(
+    args: any,
+    context: ExecutionContext
+  ): Promise<{ count: number; updatedIds: string[] }> {
     const oldTag = args.old_tag;
     const newTag = args.new_tag || '';
-    return await context.siyuan.tag.replaceTag(oldTag, newTag);
+
+    const escapeSql = (value: string): string => value.replace(/'/g, "''");
+
+    const oldTagEscaped = escapeSql(oldTag);
+    const newTagEscaped = escapeSql(newTag);
+
+    const oldTagPattern = `%#${oldTagEscaped}#%`;
+    const newTagPattern = `%#${newTagEscaped}#%`;
+
+    const beforeStmt = `SELECT id FROM blocks WHERE markdown LIKE '${oldTagPattern}'`;
+    const beforeRows = await context.siyuan.search.query(beforeStmt);
+
+    const beforeIds = Array.isArray(beforeRows)
+      ? beforeRows
+          .map((row: any) => row?.id)
+          .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)
+      : [];
+
+    const ok = await context.siyuan.tag.replaceTag(oldTag, newTag);
+
+    if (!ok) {
+      return {
+        count: 0,
+        updatedIds: [],
+      };
+    }
+
+    if (newTag === '') {
+      if (beforeIds.length === 0) {
+        return {
+          count: 0,
+          updatedIds: [],
+        };
+      }
+
+      const verifyRemovedStmt = `SELECT id FROM blocks WHERE id IN (${beforeIds
+        .map(id => `'${escapeSql(id)}'`)
+        .join(', ')}) AND markdown LIKE '${oldTagPattern}'`;
+
+      const stillOldRows = await context.siyuan.search.query(verifyRemovedStmt);
+
+      const stillOldIds = new Set(
+        (Array.isArray(stillOldRows) ? stillOldRows : [])
+          .map((row: any) => row?.id)
+          .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)
+      );
+
+      const updatedIds = beforeIds.filter(id => !stillOldIds.has(id));
+
+      return {
+        count: updatedIds.length,
+        updatedIds,
+      };
+    }
+
+    const afterStmt = `SELECT id FROM blocks WHERE markdown LIKE '${newTagPattern}'`;
+    const afterRows = await context.siyuan.search.query(afterStmt);
+
+    const afterIds = new Set(
+      (Array.isArray(afterRows) ? afterRows : [])
+        .map((row: any) => row?.id)
+        .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)
+    );
+
+    const updatedIds = beforeIds.filter(id => afterIds.has(id));
+
+    return {
+      count: updatedIds.length,
+      updatedIds,
+    };
   }
 }
