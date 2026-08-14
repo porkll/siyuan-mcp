@@ -52,3 +52,53 @@ describe('getDocumentTree (回归测试 - 当前 bug)', () => {
     expect(hasChildren(tree)).toBe(true);
   });
 });
+
+describe('getDocumentTree edge cases', () => {
+  let api: SiyuanDocumentApi;
+  const NOTEBOOK_ID = process.env.TEST_NOTEBOOK_ID || '20260416164710-zpvex7y';
+  const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:6806';
+  const TOKEN = process.env.TEST_TOKEN || 'mqeejpiki94zd3ph';
+
+  beforeAll(() => {
+    api = new SiyuanDocumentApi({
+      request: async (endpoint: string, data: any) => {
+        const res = await fetch(`${BASE_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Token ' + TOKEN },
+          body: data ? JSON.stringify(data) : undefined,
+        });
+        return res.json();
+      },
+    } as any);
+  });
+
+  it('should return empty array for non-existent notebook', async () => {
+    const tree = await api.getDocumentTree('non-existent-notebook-id-9999', 10);
+    expect(tree).toEqual([]);
+  });
+
+  it('should resolve parent-child correctly (specific known pair)', async () => {
+    // 102-建表方式 (20260501100520-d0mlbxg) should be child of backlog (20260501100518-aufo3d9)
+    const tree = await api.getDocumentTree(NOTEBOOK_ID, 10);
+    const backlog = tree
+      .flatMap((r: any) => [r, ...(r.children || [])])
+      .flatMap((r: any) => [r, ...(r.children || [])])
+      .find((n: any) => n.id === '20260501100518-aufo3d9');
+    expect(backlog).toBeDefined();
+    const childIds = (backlog.children || []).map((c: any) => c.id);
+    expect(childIds).toContain('20260501100520-d0mlbxg');
+  });
+
+  it('should handle deeply nested chains (5+ levels)', async () => {
+    // daily note > 2026 > 05 > 2026-05-12 > 某笔记 = 5 层
+    const tree = await api.getDocumentTree(NOTEBOOK_ID, 10);
+    function maxDepth(nodes: any[], d: number = 0): number {
+      let m = d;
+      for (const n of nodes) {
+        if (n.children) m = Math.max(m, maxDepth(n.children, d + 1));
+      }
+      return m;
+    }
+    expect(maxDepth(tree)).toBeGreaterThanOrEqual(5);
+  });
+});

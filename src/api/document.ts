@@ -112,7 +112,10 @@ export class SiyuanDocumentApi {
    * @param fromIds 要移动的文档ID列表（可以是单个或多个）
    * @param toNotebookId 目标笔记本ID
    */
-  async moveDocumentsToNotebookRoot(fromIds: string | string[], toNotebookId: string): Promise<void> {
+  async moveDocumentsToNotebookRoot(
+    fromIds: string | string[],
+    toNotebookId: string
+  ): Promise<void> {
     const fromIdArray = Array.isArray(fromIds) ? fromIds : [fromIds];
 
     // 首先获取所有文档的路径
@@ -134,7 +137,7 @@ export class SiyuanDocumentApi {
     const response = await this.client.request('/api/filetree/moveDocs', {
       fromPaths: fromPaths,
       toNotebook: toNotebookId,
-      toPath: '/',  // "/" 表示笔记本根目录
+      toPath: '/', // "/" 表示笔记本根目录
     });
 
     if (response.code !== 0) {
@@ -178,12 +181,9 @@ export class SiyuanDocumentApi {
    * @returns 人类可读路径
    */
   async getHumanReadablePath(blockId: string): Promise<string> {
-    const response = await this.client.request<{ hPath: string }>(
-      '/api/filetree/getHPathByID',
-      {
-        id: blockId,
-      }
-    );
+    const response = await this.client.request<{ hPath: string }>('/api/filetree/getHPathByID', {
+      id: blockId,
+    });
 
     return response.data.hPath;
   }
@@ -213,10 +213,10 @@ export class SiyuanDocumentApi {
    * 构建查询文档树的SQL语句
    */
   private buildTreeQuery(id: string, maxDepth: number): string {
-      // 注意：思源 SQL API 默认 LIMIT 64，必须显式加 LIMIT 才能返回完整数据
-      // maxDepth 参数保留以兼容 API，但实际不再需要——JS 自己构造树
-      void maxDepth;
-      return `
+    // 注意：思源 SQL API 默认 LIMIT 64，必须显式加 LIMIT 才能返回完整数据
+    // maxDepth 参数保留以兼容 API，但实际不再需要——JS 自己构造树
+    void maxDepth;
+    return `
       SELECT
         b.id,
         b.parent_id,
@@ -238,51 +238,49 @@ export class SiyuanDocumentApi {
       ORDER BY b.path
       LIMIT 10000;
     `;
-    }
+  }
 
   /**
    * 从查询结果构建文档树响应结构
    */
   private toDocTreeNodeResponse(data: any[]): DocTreeNodeResponse[] {
-      if (!data || data.length === 0) return [];
+    if (!data || data.length === 0) return [];
 
-      const nodeMap = new Map<string, DocTreeNodeResponse>();
-      const rootNodes: DocTreeNodeResponse[] = [];
+    const nodeMap = new Map<string, DocTreeNodeResponse>();
+    const rootNodes: DocTreeNodeResponse[] = [];
 
-      data.forEach((item) => {
-        const node: DocTreeNodeResponse = {
-          id: item.id as string,
-          name: extractTitle(item.content || item.name),
-          path: item.hpath as string,
-          children: [],
-        };
+    data.forEach((item) => {
+      const node: DocTreeNodeResponse = {
+        id: item.id as string,
+        name: extractTitle(item.content || item.name),
+        path: item.hpath as string,
+        children: [],
+      };
 
-        nodeMap.set(node.id, node);
+      nodeMap.set(node.id, node);
 
-        // 解析 path 找父节点 ID：
-        // path 形如 /<root_id>/<id1>/<id2>/<self_id>.sy
-        // 例如 /20260501095329-jd2u4zy/20260501100518-aufo3d9/20260501100520-d0mlbxg.sy
-        // 父节点 ID = path 中去掉开头的 / 和末尾的 .sy 后的最后一段
-        const path = (item.path as string) || '';
-        const trimmed = path.replace(/^\//, '').replace(/\.sy$/, '');
-        const segments = trimmed.split('/').filter((s) => s);
+      // 解析 path 找父节点 ID：
+      // path 形如 /<root_id>/<id1>/<id2>/<self_id>.sy
+      // 例如 /20260501095329-jd2u4zy/20260501100518-aufo3d9/20260501100520-d0mlbxg.sy
+      // 父节点 ID = path 中去掉开头的 / 和末尾的 .sy 后的最后一段
+      const path = (item.path as string) || '';
+      const trimmed = path.replace(/^\//, '').replace(/\.sy$/, '');
+      const segments = trimmed.split('/').filter((s) => s);
 
-        if (segments.length <= 1) {
-          rootNodes.push(node);
+      if (segments.length <= 1) {
+        rootNodes.push(node);
+      } else {
+        const parentId = segments[segments.length - 2];
+        const parent = nodeMap.get(parentId);
+        if (parent) {
+          if (!parent.children) parent.children = [];
+          parent.children.push(node);
         } else {
-          const parentId = segments[segments.length - 2];
-          const parent = nodeMap.get(parentId);
-          if (parent) {
-            if (!parent.children) parent.children = [];
-            parent.children.push(node);
-          } else {
-            rootNodes.push(node);
-          }
+          rootNodes.push(node);
         }
-      });
+      }
+    });
 
-      return rootNodes;
-    }
-
-
+    return rootNodes;
+  }
 }
