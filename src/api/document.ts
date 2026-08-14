@@ -112,7 +112,10 @@ export class SiyuanDocumentApi {
    * @param fromIds 要移动的文档ID列表（可以是单个或多个）
    * @param toNotebookId 目标笔记本ID
    */
-  async moveDocumentsToNotebookRoot(fromIds: string | string[], toNotebookId: string): Promise<void> {
+  async moveDocumentsToNotebookRoot(
+    fromIds: string | string[],
+    toNotebookId: string
+  ): Promise<void> {
     const fromIdArray = Array.isArray(fromIds) ? fromIds : [fromIds];
 
     // 首先获取所有文档的路径
@@ -134,7 +137,7 @@ export class SiyuanDocumentApi {
     const response = await this.client.request('/api/filetree/moveDocs', {
       fromPaths: fromPaths,
       toNotebook: toNotebookId,
-      toPath: '/',  // "/" 表示笔记本根目录
+      toPath: '/', // "/" 表示笔记本根目录
     });
 
     if (response.code !== 0) {
@@ -178,12 +181,9 @@ export class SiyuanDocumentApi {
    * @returns 人类可读路径
    */
   async getHumanReadablePath(blockId: string): Promise<string> {
-    const response = await this.client.request<{ hPath: string }>(
-      '/api/filetree/getHPathByID',
-      {
-        id: blockId,
-      }
-    );
+    const response = await this.client.request<{ hPath: string }>('/api/filetree/getHPathByID', {
+      id: blockId,
+    });
 
     return response.data.hPath;
   }
@@ -213,56 +213,30 @@ export class SiyuanDocumentApi {
    * 构建查询文档树的SQL语句
    */
   private buildTreeQuery(id: string, maxDepth: number): string {
-    // 查询指定ID下的所有文档，按深度限制
+    // 注意：思源 SQL API 默认 LIMIT 64，必须显式加 LIMIT 才能返回完整数据
+    // maxDepth 参数保留以兼容 API，但实际不再需要——JS 自己构造树
+    void maxDepth;
     return `
-      WITH RECURSIVE doc_tree AS (
-        -- 基础查询：获取起始节点
-        -- 情况1: id 是笔记本ID (box) - 获取该笔记本的顶层文档
-        -- 情况2: id 是文档ID - 获取该文档及其子文档
-        SELECT
-          b.id,
-          b.parent_id,
-          b.root_id,
-          b.content as name,
-          b.box,
-          b.path,
-          b.hpath,
-          b.type,
-          b.subtype,
-          b.ial,
-          0 as depth
-        FROM blocks b
-        WHERE b.type = 'd'
-          AND (
-            -- 情况1: 笔记本的顶层文档 (box匹配且parent_id为空)
-            (b.box = '${id}' AND b.parent_id = '')
-            OR
-            -- 情况2: 指定文档ID
-            b.id = '${id}'
-          )
-
-        UNION ALL
-
-        -- 递归查询：获取子节点
-        SELECT
-          b.id,
-          b.parent_id,
-          b.root_id,
-          b.content as name,
-          b.box,
-          b.path,
-          b.hpath,
-          b.type,
-          b.subtype,
-          b.ial,
-          dt.depth + 1 as depth
-        FROM blocks b
-        INNER JOIN doc_tree dt ON b.parent_id = dt.id
-        WHERE b.type = 'd'
-          AND dt.depth < ${maxDepth}
-      )
-      SELECT * FROM doc_tree
-      ORDER BY depth, path;
+      SELECT
+        b.id,
+        b.parent_id,
+        b.root_id,
+        b.content as name,
+        b.box,
+        b.path,
+        b.hpath,
+        b.type,
+        b.subtype,
+        b.ial
+      FROM blocks b
+      WHERE b.type = 'd'
+        AND (
+          (b.box = '${id}')
+          OR
+          (b.id = '${id}')
+        )
+      ORDER BY b.path
+      LIMIT 10000;
     `;
   }
 
@@ -272,39 +246,41 @@ export class SiyuanDocumentApi {
   private toDocTreeNodeResponse(data: any[]): DocTreeNodeResponse[] {
     if (!data || data.length === 0) return [];
 
-    // 将对象数据转换为响应节点对象
     const nodeMap = new Map<string, DocTreeNodeResponse>();
     const rootNodes: DocTreeNodeResponse[] = [];
 
     data.forEach((item) => {
       const node: DocTreeNodeResponse = {
         id: item.id as string,
-        name: extractTitle(item.content || item.name), // content/name
-        path: item.hpath as string, // 人类可读路径
+        name: extractTitle(item.content || item.name),
+        path: item.hpath as string,
         children: [],
       };
 
       nodeMap.set(node.id, node);
 
-      // 如果是根节点或没有父节点
-      const parentId = item.parent_id as string;
-      const depth = item.depth as number;
+      // 解析 path 找父节点 ID：
+      // path 形如 /<root_id>/<id1>/<id2>/<self_id>.sy
+      // 例如 /20260501095329-jd2u4zy/20260501100518-aufo3d9/20260501100520-d0mlbxg.sy
+      // 父节点 ID = path 中去掉开头的 / 和末尾的 .sy 后的最后一段
+      const path = (item.path as string) || '';
+      const trimmed = path.replace(/^\//, '').replace(/\.sy$/, '');
+      const segments = trimmed.split('/').filter((s) => s);
 
-      if (depth === 0 || !parentId) {
+      if (segments.length <= 1) {
         rootNodes.push(node);
       } else {
+        const parentId = segments[segments.length - 2];
         const parent = nodeMap.get(parentId);
         if (parent) {
-          if (!parent.children) {
-            parent.children = [];
-          }
+          if (!parent.children) parent.children = [];
           parent.children.push(node);
+        } else {
+          rootNodes.push(node);
         }
       }
     });
 
     return rootNodes;
   }
-
-
 }
