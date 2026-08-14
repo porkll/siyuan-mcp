@@ -213,58 +213,32 @@ export class SiyuanDocumentApi {
    * 构建查询文档树的SQL语句
    */
   private buildTreeQuery(id: string, maxDepth: number): string {
-    // 查询指定ID下的所有文档，按深度限制
-    return `
-      WITH RECURSIVE doc_tree AS (
-        -- 基础查询：获取起始节点
-        -- 情况1: id 是笔记本ID (box) - 获取该笔记本的顶层文档
-        -- 情况2: id 是文档ID - 获取该文档及其子文档
-        SELECT
-          b.id,
-          b.parent_id,
-          b.root_id,
-          b.content as name,
-          b.box,
-          b.path,
-          b.hpath,
-          b.type,
-          b.subtype,
-          b.ial,
-          0 as depth
-        FROM blocks b
-        WHERE b.type = 'd'
-          AND (
-            -- 情况1: 笔记本的顶层文档 (box匹配且parent_id为空)
-            (b.box = '${id}' AND b.parent_id = '')
-            OR
-            -- 情况2: 指定文档ID
-            b.id = '${id}'
-          )
-
-        UNION ALL
-
-        -- 递归查询：获取子节点
-        SELECT
-          b.id,
-          b.parent_id,
-          b.root_id,
-          b.content as name,
-          b.box,
-          b.path,
-          b.hpath,
-          b.type,
-          b.subtype,
-          b.ial,
-          dt.depth + 1 as depth
-        FROM blocks b
-        INNER JOIN doc_tree dt ON b.parent_id = dt.id
-        WHERE b.type = 'd'
-          AND dt.depth < ${maxDepth}
-      )
-      SELECT * FROM doc_tree
-      ORDER BY depth, path;
+      // 注意：思源 SQL API 默认 LIMIT 64，必须显式加 LIMIT 才能返回完整数据
+      // maxDepth 参数保留以兼容 API，但实际不再需要——JS 自己构造树
+      void maxDepth;
+      return `
+      SELECT
+        b.id,
+        b.parent_id,
+        b.root_id,
+        b.content as name,
+        b.box,
+        b.path,
+        b.hpath,
+        b.type,
+        b.subtype,
+        b.ial
+      FROM blocks b
+      WHERE b.type = 'd'
+        AND (
+          (b.box = '${id}')
+          OR
+          (b.id = '${id}')
+        )
+      ORDER BY b.path
+      LIMIT 10000;
     `;
-  }
+    }
 
   /**
    * 从查询结果构建文档树响应结构
