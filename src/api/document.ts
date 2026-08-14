@@ -244,41 +244,45 @@ export class SiyuanDocumentApi {
    * 从查询结果构建文档树响应结构
    */
   private toDocTreeNodeResponse(data: any[]): DocTreeNodeResponse[] {
-    if (!data || data.length === 0) return [];
+      if (!data || data.length === 0) return [];
 
-    // 将对象数据转换为响应节点对象
-    const nodeMap = new Map<string, DocTreeNodeResponse>();
-    const rootNodes: DocTreeNodeResponse[] = [];
+      const nodeMap = new Map<string, DocTreeNodeResponse>();
+      const rootNodes: DocTreeNodeResponse[] = [];
 
-    data.forEach((item) => {
-      const node: DocTreeNodeResponse = {
-        id: item.id as string,
-        name: extractTitle(item.content || item.name), // content/name
-        path: item.hpath as string, // 人类可读路径
-        children: [],
-      };
+      data.forEach((item) => {
+        const node: DocTreeNodeResponse = {
+          id: item.id as string,
+          name: extractTitle(item.content || item.name),
+          path: item.hpath as string,
+          children: [],
+        };
 
-      nodeMap.set(node.id, node);
+        nodeMap.set(node.id, node);
 
-      // 如果是根节点或没有父节点
-      const parentId = item.parent_id as string;
-      const depth = item.depth as number;
+        // 解析 path 找父节点 ID：
+        // path 形如 /<root_id>/<id1>/<id2>/<self_id>.sy
+        // 例如 /20260501095329-jd2u4zy/20260501100518-aufo3d9/20260501100520-d0mlbxg.sy
+        // 父节点 ID = path 中去掉开头的 / 和末尾的 .sy 后的最后一段
+        const path = (item.path as string) || '';
+        const trimmed = path.replace(/^\//, '').replace(/\.sy$/, '');
+        const segments = trimmed.split('/').filter((s) => s);
 
-      if (depth === 0 || !parentId) {
-        rootNodes.push(node);
-      } else {
-        const parent = nodeMap.get(parentId);
-        if (parent) {
-          if (!parent.children) {
-            parent.children = [];
+        if (segments.length <= 1) {
+          rootNodes.push(node);
+        } else {
+          const parentId = segments[segments.length - 2];
+          const parent = nodeMap.get(parentId);
+          if (parent) {
+            if (!parent.children) parent.children = [];
+            parent.children.push(node);
+          } else {
+            rootNodes.push(node);
           }
-          parent.children.push(node);
         }
-      }
-    });
+      });
 
-    return rootNodes;
-  }
+      return rootNodes;
+    }
 
 
 }
