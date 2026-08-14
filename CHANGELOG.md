@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+- `get_document_tree` 在大笔记本上只返回 64 个根节点（思源 SQL API 默认 LIMIT 64 的 bug）。修复后能正确返回完整树状结构（已验证 459 节点笔记本）
+- `get_document_tree` 父子关系解析：思源不存 parent_id 字段，父节点关系在 path 字段里。改用 path 解析
+
 ## [0.1.6] - 2025-10-27
 
 ### Improved
