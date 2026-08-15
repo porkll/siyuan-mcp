@@ -118,24 +118,11 @@ export class SiyuanDocumentApi {
   ): Promise<void> {
     const fromIdArray = Array.isArray(fromIds) ? fromIds : [fromIds];
 
-    // 首先获取所有文档的路径
-    const fromPaths: string[] = [];
-    for (const docId of fromIdArray) {
-      const stmt = `SELECT hpath FROM blocks WHERE id = '${docId}' AND type = 'd'`;
-      const response = await this.client.request<any[]>('/api/query/sql', { stmt });
-      const blocks = response.data || [];
-      if (blocks.length > 0) {
-        fromPaths.push(blocks[0].hpath);
-      }
-    }
-
-    if (fromPaths.length === 0) {
-      throw new Error('No valid documents found to move');
-    }
-
-    // 使用 moveDocs API 移动到笔记本根目录
+    // 注意1：fromPaths 不接受 hpath 逻辑路径（会报 block not found），必须用 fromIDs
+    // 注意2：不要在移动前用 SQL blocks 校验文档存在——思源 SQL 索引在文档树
+    //        变更（创建/移动）后有短暂延迟，会误报 not found。moveDocs 自身会报错
     const response = await this.client.request('/api/filetree/moveDocs', {
-      fromPaths: fromPaths,
+      fromIDs: fromIdArray,
       toNotebook: toNotebookId,
       toPath: '/', // "/" 表示笔记本根目录
     });

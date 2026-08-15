@@ -410,28 +410,14 @@ describe('SiYuan MCP Server Integration Tests', () => {
       );
 
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('count');
-      expect(result).toHaveProperty('updatedIds');
-      console.log(`  Replace result: ${result.count} blocks updated`);
-
-      if (result.count === 0) {
-        console.log('  ⚠️  No blocks were updated - tag might not be found');
-        // Skip the rest of the test if nothing was updated
-        return;
-      }
-
-      expect(result.count).toBeGreaterThan(0);
-      expect(Array.isArray(result.updatedIds)).toBe(true);
-      expect(result.updatedIds.length).toBeGreaterThan(0);
-
-      console.log(`✓ Replaced tag "${tempTag}" → "${newTag}" (${result.count} blocks updated)`);
-      console.log(`  Updated block IDs: ${result.updatedIds.join(', ')}`);
+      expect(result).toBe(true);
+      console.log(`  Replace result: ${result}`);
 
       // Wait for update to propagate
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // 3. Verify the tag was replaced by querying the markdown content
-      const verifyStmt = `SELECT id, markdown FROM blocks WHERE id = '${result.updatedIds[0]}'`;
+      // 3. Verify the tag was replaced by querying blocks with the new tag
+      const verifyStmt = `SELECT id, markdown FROM blocks WHERE markdown LIKE '%#${newTag}#%'`;
       const verifyBlocks = await context.siyuan.search.query(verifyStmt);
 
       expect(verifyBlocks.length).toBeGreaterThan(0);
@@ -439,9 +425,13 @@ describe('SiYuan MCP Server Integration Tests', () => {
 
       console.log(`  Updated content: ${verifyBlocks[0].markdown}`);
 
-      // 标签在思源笔记中可能包含零宽字符，所以只检查标签名称本身
+      // 4. 标签在思源笔记中可能包含零宽字符，所以只检查标签名称本身
       expect(verifyBlocks[0].markdown).toContain(newTag);
-      expect(verifyBlocks[0].markdown).not.toContain(tempTag);
+      // 旧标签应不再出现（renameTag 是全库重命名）
+      const oldTagBlocks = await context.siyuan.search.query(
+        `SELECT id FROM blocks WHERE markdown LIKE '%#${tempTag}#%'`
+      );
+      expect(oldTagBlocks.length).toBe(0);
 
       console.log('✓ Tag replacement verified in block content');
 
@@ -456,8 +446,8 @@ describe('SiYuan MCP Server Integration Tests', () => {
         context
       );
 
-      expect(cleanupResult.count).toBeGreaterThan(0);
-      console.log(`✓ Cleaned up test tag (removed from ${cleanupResult.count} documents)`);
+      expect(cleanupResult).toBe(true);
+      console.log(`✓ Cleaned up test tag (removed from all documents)`);
       */
 
       console.log(`ℹ️  Test tag #${newTag}# left in document for manual verification`);
