@@ -234,6 +234,8 @@ export class SiyuanDocumentApi {
           (b.box = '${id}')
           OR
           (b.id = '${id}')
+          OR
+          (b.path LIKE '%/${id}/%')
         )
       ORDER BY b.path
       LIMIT 10000;

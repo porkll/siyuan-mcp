@@ -102,3 +102,34 @@ describe('getDocumentTree edge cases', () => {
     expect(maxDepth(tree)).toBeGreaterThanOrEqual(5);
   });
 });
+
+describe('getDocumentTree with document ID', () => {
+  let api: SiyuanDocumentApi;
+  const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:6806';
+  const TOKEN = process.env.TEST_TOKEN || 'mqeejpiki94zd3ph';
+
+  beforeAll(() => {
+    api = new SiyuanDocumentApi({
+      request: async (endpoint: string, data: any) => {
+        const res = await fetch(`${BASE_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Token ' + TOKEN },
+          body: data ? JSON.stringify(data) : undefined,
+        });
+        return res.json();
+      },
+    } as any);
+  });
+
+  it('should return the doc itself as single root with its children', async () => {
+    // 2026-05-21 日期页，已知有 5 个子文档
+    const DOC_ID = '20260521083050-fz14rgz';
+    const tree = await api.getDocumentTree(DOC_ID, 10);
+
+    expect(tree.length).toBe(1);
+    const root = tree[0];
+    expect(root).toBeDefined();
+    expect(root!.id).toBe(DOC_ID);
+    expect(root!.children!.length).toBe(5);
+  });
+});
