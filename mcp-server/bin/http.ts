@@ -29,6 +29,11 @@ function parseArgs(): Partial<ServerConfig> & { port?: number } {
           config.token = args[++i];
         }
         break;
+      case '--blacklistedNotebooks':
+        if (i + 1 < args.length) {
+          config.blacklistedNotebooks = args[++i].split(',');
+        }
+        break;
       case '--baseUrl':
         if (i + 1 < args.length) {
           config.baseUrl = args[++i];
@@ -119,6 +124,7 @@ async function main() {
     baseUrl: config.baseUrl || 'http://127.0.0.1:6806',
     name: 'siyuan-mcp-server-http',
     version: '0.1.0',
+    blacklistedNotebooks: config.blacklistedNotebooks,
   };
 
   const port = config.port || 3000;

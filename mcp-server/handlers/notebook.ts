@@ -31,6 +31,7 @@ export class GetRecentlyUpdatedDocumentsHandler extends BaseToolHandler<
 > {
   readonly name = 'get_recently_updated_documents';
   readonly description = 'Get recently modified notes in SiYuan, sorted by update time (most recent first). Useful for finding what you worked on recently';
+  readonly notebookIdFields = ['notebook_id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {

@@ -12,6 +12,7 @@ import type { DocTreeNodeResponse } from '../../src/types/index.js';
 export class GetDocumentContentHandler extends BaseToolHandler<{ document_id: string; offset?: number; limit?: number }, string> {
   readonly name = 'get_document_content';
   readonly description = 'Read the markdown content of a note in SiYuan. Returns the full note content in markdown format, with optional pagination support';
+  readonly documentIdFields = ['document_id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -45,7 +46,7 @@ export class GetDocumentContentHandler extends BaseToolHandler<{ document_id: st
     }
 
     // 进行分页处理
-    const offset = args.offset ?? 0;
+    const offset = Math.max(0, args.offset ?? 0);
     const startLine = offset;
 
     // 如果起始行超出范围，返回元信息说明
@@ -75,6 +76,7 @@ export class CreateDocumentHandler extends BaseToolHandler<
 > {
   readonly name = 'create_document';
   readonly description = 'Create a new note document in a SiYuan notebook with markdown content';
+  readonly notebookIdFields = ['notebook_id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -108,6 +110,7 @@ export class AppendToDocumentHandler extends BaseToolHandler<
 > {
   readonly name = 'append_to_document';
   readonly description = 'Append markdown content to the end of an existing note in SiYuan';
+  readonly documentIdFields = ['document_id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -137,6 +140,7 @@ export class UpdateDocumentHandler extends BaseToolHandler<
 > {
   readonly name = 'update_document';
   readonly description = 'Replace the entire content of a note in SiYuan with new markdown content (overwrites existing content)';
+  readonly documentIdFields = ['document_id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -167,6 +171,7 @@ export class AppendToDailyNoteHandler extends BaseToolHandler<
 > {
   readonly name = 'append_to_daily_note';
   readonly description = "Append markdown content to today's daily note in SiYuan (automatically creates the daily note if it doesn't exist)";
+  readonly notebookIdFields = ['notebook_id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
@@ -196,13 +201,14 @@ export class MoveDocumentsHandler extends BaseToolHandler<
 > {
   readonly name = 'move_documents';
   readonly description = 'Move one or more notes to a new location in SiYuan. Provide EXACTLY ONE destination: either to_parent_id (to nest notes under a parent note) OR to_notebook_root (to move notes to notebook top level).';
+  readonly notebookIdFields = ['to_notebook_root'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
       from_ids: {
-        type: 'array',
+        type: ['array', 'string'],
         items: { type: 'string' },
-        description: 'Array of note document IDs to move. For a single note, use an array with one element: ["note-id"]',
+        description: 'Note document ID(s) to move. Can be a single ID string or an array of ID strings.',
       },
       to_parent_id: {
         type: 'string',
@@ -277,6 +283,7 @@ export class GetDocumentTreeHandler extends BaseToolHandler<
 > {
   readonly name = 'get_document_tree';
   readonly description = 'Get the hierarchical structure of notes in SiYuan with specified depth. Returns the note tree starting from a notebook or parent note.';
+  readonly notebookIdFields = ['id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {
