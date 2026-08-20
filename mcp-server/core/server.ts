@@ -136,8 +136,8 @@ export class SiyuanMCPServer {
           throw new Error(`Unknown tool: ${name}`);
         }
 
-        // 执行工具
-        const result = await handler.execute(args || {}, this.context);
+        // 执行工具（使用 safeExecute 以启用 validate + 日志）
+        const result = await handler.safeExecute(args || {}, this.context);
 
         // 格式化返回结果（符合 MCP 协议）
         // 处理 void 返回值（undefined）
@@ -183,7 +183,7 @@ export class SiyuanMCPServer {
 
 ## 概述
 
-SiYuan MCP 服务器提供了一套工具用于操作思源笔记，包括搜索、文档管理、快照备份等功能。
+SiYuan MCP 服务器提供了一套工具用于操作思源笔记，包括搜索、文档管理、笔记本管理、快照备份、标签管理等功能。共 16 个工具。
 
 ## 重要提示
 
@@ -195,41 +195,45 @@ SiYuan MCP 服务器提供了一套工具用于操作思源笔记，包括搜索
 1. 使用 create_snapshot 创建快照（建议添加描述说明）
 2. 执行修改操作
 3. 如果出错，使用 list_snapshots 查看快照列表
-4. 使用 rollback_snapshot 回滚到指定快照
+4. 使用 rollback_to_snapshot 回滚到指定快照
 \`\`\`
 
 ### 工作流程建议
 
-1. **搜索文档**：使用 \`search_by_filename\` 或 \`search_by_content\` 查找目标文档
+1. **搜索文档**：使用 \`unified_search\` 查找目标文档
 2. **获取内容**：使用 \`get_document_content\` 查看文档内容
 3. **创建快照**：使用 \`create_snapshot\` 保存当前状态
 4. **修改文档**：使用 \`update_document\`、\`append_to_document\` 等修改内容
 5. **验证结果**：再次获取内容确认修改正确
-6. **必要时回滚**：如果出错，使用 \`rollback_snapshot\` 恢复
+6. **必要时回滚**：如果出错，使用 \`rollback_to_snapshot\` 恢复
 
 ## 工具分类
 
-### 搜索工具（3个）
-- \`search_by_filename\`: 按文件名搜索文档
-- \`search_by_content\`: 按内容搜索文档
-- \`sql_query\`: 执行 SQL 查询（高级用法）
+### 搜索工具（1个）
+- \`unified_search\`: 统一搜索（支持按文件名、内容、SQL查询等多种模式）
 
-### 文档工具（6个）
-- \`get_document_content\`: 获取文档的 Markdown 内容
+### 文档工具（7个）
+- \`get_document_content\`: 获取文档的 Markdown 内容（支持分页）
 - \`create_document\`: 在指定笔记本创建新文档
 - \`append_to_document\`: 向文档追加内容
 - \`update_document\`: 更新（覆盖）文档内容
 - \`append_to_daily_note\`: 追加内容到今日笔记
-- \`move_document\`: 移动文档到其他位置
+- \`move_documents\`: 移动一个或多个文档到其他位置
+- \`get_document_tree\`: 获取文档树结构
 
-### 笔记本工具（2个）
+### 笔记本工具（3个）
 - \`list_notebooks\`: 列出所有笔记本
 - \`get_recently_updated_documents\`: 获取最近更新的文档
+- \`create_notebook\`: 创建新笔记本
 
 ### 快照工具（3个）
 - \`create_snapshot\`: 创建数据快照
-- \`list_snapshots\`: 列出所有快照
-- \`rollback_snapshot\`: 回滚到指定快照
+- \`list_snapshots\`: 列出所有快照（分页）
+- \`rollback_to_snapshot\`: 回滚到指定快照
+
+### 标签工具（2个）
+- \`list_all_tags\`: 列出所有标签（支持前缀过滤和层级深度限制）
+- \`batch_replace_tag\`: 批量替换/删除标签
 
 ## 使用示例
 
@@ -237,13 +241,13 @@ SiYuan MCP 服务器提供了一套工具用于操作思源笔记，包括搜索
 
 \`\`\`
 1. create_snapshot(memo: "批量修改前的备份")
-2. search_by_content(content: "需要修改的内容")
+2. unified_search(query: "需要修改的内容")
 3. 对每个搜索结果：
    - get_document_content(document_id: "...")
    - 修改内容
    - update_document(document_id: "...", content: "新内容")
 4. 验证修改结果
-5. 如有问题：rollback_snapshot(snapshot_id: "...")
+5. 如有问题：rollback_to_snapshot(snapshot_id: "...")
 \`\`\`
 
 ### 示例2：创建每日记录
@@ -257,8 +261,8 @@ SiYuan MCP 服务器提供了一套工具用于操作思源笔记，包括搜索
 
 \`\`\`
 1. create_snapshot(memo: "整理文档结构前")
-2. search_by_filename(filename: "待整理的文档")
-3. move_document(from_ids: "文档ID", to_id: "目标文档ID")
+2. unified_search(query: "待整理的文档")
+3. move_documents(from_ids: ["文档ID"], to_parent_id: "目标文档ID")
 \`\`\`
 
 ## 注意事项
@@ -268,6 +272,7 @@ SiYuan MCP 服务器提供了一套工具用于操作思源笔记，包括搜索
 3. **Markdown 格式**：所有内容使用 Markdown 格式
 4. **快照限制**：快照功能需要思源笔记开启数据仓库功能
 5. **并发操作**：避免同时修改同一文档，可能导致冲突
+6. **标签删除**：\`batch_replace_tag\` 的 new_tag 传空字符串即可删除标签
 
 ## 最佳实践
 

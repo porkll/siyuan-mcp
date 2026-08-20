@@ -161,6 +161,7 @@ Once configured, you can interact with SiYuan through natural language. The serv
 - **update_document** - Update (overwrite) document content
 - **move_documents** - Move one or more documents to a new location
 - **get_document_tree** - Get document tree structure with specified depth
+  - _Fix:_ correctly returns the full tree on large notebooks (previously capped at 64 roots due to SiYuan's SQL `LIMIT 64` default); see [CHANGELOG](./CHANGELOG.md)
 
 ### 📅 Daily Note
 - **append_to_daily_note** - Append to today's daily note (auto-creates if needed)

@@ -23,6 +23,7 @@ export class UnifiedSearchHandler extends BaseToolHandler<
   readonly name = 'unified_search';
   readonly description =
     'Search notes in SiYuan by content keywords, tags, note titles, or combined filters. Returns matching notes and blocks from your knowledge base';
+  readonly notebookIdFields = ['notebook_id'];
   readonly inputSchema: JSONSchema = {
     type: 'object',
     properties: {

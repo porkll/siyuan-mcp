@@ -16,6 +16,8 @@ export interface ServerConfig {
   name?: string;
   /** 服务器版本 */
   version?: string;
+  /** 黑名单笔记本ID列表，这些笔记本下的所有操作将被拦截 */
+  blacklistedNotebooks?: string[];
 }
 
 /**
@@ -62,6 +64,14 @@ export interface ToolHandler<TArgs = any, TResult = any> {
   execute(args: TArgs, context: ExecutionContext): Promise<TResult>;
 
   /**
+   * 安全执行工具（带参数校验和日志）
+   * @param args 输入参数
+   * @param context 执行上下文
+   * @returns 执行结果
+   */
+  safeExecute(args: TArgs, context: ExecutionContext): Promise<TResult>;
+
+  /**
    * 验证参数（可选）
    * @param args 输入参数
    * @returns 是否有效
@@ -80,7 +90,7 @@ export interface JSONSchema {
 }
 
 export interface JSONSchemaProperty {
-  type: string;
+  type: string | string[];
   description?: string;
   default?: any;
   enum?: any[];

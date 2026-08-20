@@ -60,7 +60,7 @@ export class ListSnapshotsHandler extends BaseToolHandler<
     args: any,
     context: ExecutionContext
   ): Promise<{ snapshots: any[]; pageCount: number; totalCount: number }> {
-    const page = args.page_number || 1;
+    const page = Math.max(1, args.page_number || 1);
     return await context.siyuan.snapshot.getSnapshots(page);
   }
 }

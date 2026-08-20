@@ -59,7 +59,7 @@ export class ReplaceTagHandler extends BaseToolHandler<
           'New tag name to replace with (without # symbol, e.g., "new-tag"). Use empty string to remove the tag.',
       },
     },
-    required: ['old_tag', 'new_tag'],
+    required: ['old_tag'],
   };
 
   async execute(args: any, context: ExecutionContext): Promise<boolean> {

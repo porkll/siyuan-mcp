@@ -103,6 +103,16 @@ export class SiyuanTools {
   }
 
   /**
+   * 直查 SQL 的便捷方法（绕过 type-safe API 层）。
+   * 主要给 overwriteFile 这类需要跨多个原子 API 的高级操作使用。
+   * @param stmt SQL 语句
+   * @returns Siyuan 原始响应
+   */
+  async querySQL<T = any>(stmt: string): Promise<{ code: number; msg?: string; data: T }> {
+    return this.client.request<T>('/api/query/sql', { stmt });
+  }
+
+  /**
    * 查看文件内容
    * @param blockId 块 ID（文档 ID）
    * @returns Markdown 内容
@@ -113,11 +123,72 @@ export class SiyuanTools {
 
   /**
    * 将内容全覆盖到文件
-   * @param blockId 块 ID
+   *
+   * 修复（2026-08-20，bug 来源：会话 20260820_163654）：
+   * 旧实现 `block.updateBlock(rootId, content)` 只更新根块 markdown 字段，
+   * 旧子块全部残留，导致"新内容 + 旧内容"混杂。
+   *
+   * 新实现：删旧子块 → 清根块 markdown → append 新内容。
+   *
+   * @param blockId 块 ID（文档 ID）
    * @param content Markdown 内容
+   * @returns 被删除的旧子块数量
    */
-  async overwriteFile(blockId: string, content: string): Promise<void> {
-    return this.block.updateBlock(blockId, content);
+  async overwriteFile(blockId: string, content: string): Promise<number> {
+    // 1) 列出旧子块（不含根块）
+    const childIds = await this.block.listChildBlocks(blockId);
+
+    // 2) 并行删除（限 5 并发，避免思源后端过载）
+    const CONCURRENCY = 5;
+    let deletedCount = 0;
+    for (let i = 0; i < childIds.length; i += CONCURRENCY) {
+      const batch = childIds.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        batch.map((id) => this.block.deleteBlock(id))
+      );
+      for (const r of results) {
+        if (r.status === 'fulfilled') deletedCount++;
+      }
+    }
+
+    // 3) 读根块 content（文档标题），用于首行 H1 去重
+    let rootTitle = '';
+    try {
+      const sqlResp = await this.querySQL<Array<{ content: string }>>(
+        `SELECT content FROM blocks WHERE id='${blockId}' AND type='d' LIMIT 1`
+      );
+      if (sqlResp.code === 0 && Array.isArray(sqlResp.data) && sqlResp.data[0]?.content) {
+        rootTitle = sqlResp.data[0].content.trim();
+      }
+    } catch {
+      // 静默：拿不到就跳过剥首行
+    }
+
+    // 4) 若新 markdown 首行是 `# xxx` 且与根块标题一致，剥掉首行
+    let processedContent = content;
+    if (rootTitle) {
+      const lines = content.split('\n');
+      let idx = 0;
+      while (idx < lines.length && lines[idx].trim() === '') idx++;
+      if (idx < lines.length) {
+        const h1Match = lines[idx].match(/^#\s+(.+?)\s*$/);
+        if (h1Match && h1Match[1].trim() === rootTitle) {
+          lines.splice(idx, 1);
+          while (lines.length > 0 && lines[0].trim() === '') lines.shift();
+          processedContent = lines.join('\n');
+        }
+      }
+    }
+
+    // 5) 清空根块 markdown 字段（防止双重标题渲染）
+    await this.block.updateBlock(blockId, '');
+
+    // 6) 追加新内容到根块下
+    if (processedContent.trim().length > 0) {
+      await this.block.appendBlock(blockId, processedContent);
+    }
+
+    return deletedCount;
   }
 
   /**

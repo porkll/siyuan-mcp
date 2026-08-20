@@ -148,6 +148,7 @@ npx @porkll/siyuan-mcp
 - **update_document** - 更新（覆盖）文档内容
 - **move_documents** - 移动一个或多个文档到新位置
 - **get_document_tree** - 获取指定深度的文档树结构
+  - _修复：_ 在大笔记本上能正确返回完整树状结构（之前因思源 SQL 默认 `LIMIT 64` 只能返回 64 个根节点）；详见 [CHANGELOG](./CHANGELOG.md)
 
 ### 📅 今日笔记
 - **append_to_daily_note** - 追加到今日笔记（如需要会自动创建）
