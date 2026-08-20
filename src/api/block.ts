@@ -52,6 +52,24 @@ export class SiyuanBlockApi {
   }
 
   /**
+   * 列出文档下所有子块（除根块本身）。
+   * 走 SQL /api/query/sql 而非 getDocTree，避免 maxDepth 限制和父 ID 解析复杂度。
+   * 只返 ID，便于批量 deleteBlock。
+   * @param rootId 文档根块 ID（即文档 ID）
+   * @returns 子块 ID 数组（不含根块）
+   */
+  async listChildBlocks(rootId: string): Promise<string[]> {
+    const stmt = `SELECT id FROM blocks WHERE root_id='${rootId}' AND id!='${rootId}' AND type IN ('d','h','p','l','i','c','b','code','m','html','widget','s','t','audio','video','iframe','query','attr-view','virtual-block','textmark') ORDER BY id LIMIT 5000`;
+    const response = await this.client.request<Array<{ id: string }>>('/api/query/sql', {
+      stmt,
+    });
+    if (response.code !== 0) {
+      throw new Error(`Failed to list child blocks: ${response.msg}`);
+    }
+    return (response.data || []).map((r) => r.id);
+  }
+
+  /**
    * 在父块下追加子块
    * @param parentId 父块 ID
    * @param content Markdown 内容
